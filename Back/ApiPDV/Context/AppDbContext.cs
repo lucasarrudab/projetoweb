@@ -16,6 +16,9 @@ namespace ApiPDV.Context
 
         protected override void OnModelCreating(ModelBuilder mb)
         {
+           
+
+
             mb.Entity<Produto>().HasData(
                 new Produto
                 {

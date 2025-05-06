@@ -14,5 +14,10 @@ namespace ApiPDV.Repositories
             return await _context.Carrinhos.Include(c => c.Produtos).ThenInclude(pc => pc.Produto).ToListAsync();
         }
 
+        public async Task<Carrinho> GetAsync(int id)
+        {
+            return await _context.Carrinhos.Where(c => c.Id == id).Include(c => c.Produtos).ThenInclude(pc => pc.Produto).FirstOrDefaultAsync();
+        }
+
     }
 }

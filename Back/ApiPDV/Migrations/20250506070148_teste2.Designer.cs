@@ -4,6 +4,7 @@ using ApiPDV.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApiPDV.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250506070148_teste2")]
+    partial class teste2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,7 +38,7 @@ namespace ApiPDV.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Carrinhos", (string)null);
+                    b.ToTable("Carrinhos");
                 });
 
             modelBuilder.Entity("ApiPDV.Models.MetodoPagamento", b =>
@@ -52,7 +55,7 @@ namespace ApiPDV.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MetodosPagamento", (string)null);
+                    b.ToTable("MetodosPagamento");
                 });
 
             modelBuilder.Entity("ApiPDV.Models.Produto", b =>
@@ -80,7 +83,7 @@ namespace ApiPDV.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Produtos", (string)null);
+                    b.ToTable("Produtos");
 
                     b.HasData(
                         new
@@ -129,7 +132,7 @@ namespace ApiPDV.Migrations
 
                     b.HasIndex("ProdutoId");
 
-                    b.ToTable("ProdutosCarrinho", (string)null);
+                    b.ToTable("ProdutosCarrinho");
                 });
 
             modelBuilder.Entity("ApiPDV.Models.Venda", b =>
@@ -155,7 +158,7 @@ namespace ApiPDV.Migrations
 
                     b.HasIndex("MetodoPagamentoId");
 
-                    b.ToTable("Vendas", (string)null);
+                    b.ToTable("Vendas");
                 });
 
             modelBuilder.Entity("ApiPDV.Models.ProdutoCarrinho", b =>

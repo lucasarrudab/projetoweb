@@ -17,6 +17,8 @@ namespace ApiPDV.Controllers
         private readonly IMapper _mapper;
         private readonly IMemoryCache _cache;
 
+        private const string CacheKey = "CacheCarrinho";
+
         public CarrinhoController(IUnitOfWork uof, IMapper mapper, IMemoryCache cache)
         {
             _uof = uof;
@@ -32,6 +34,18 @@ namespace ApiPDV.Controllers
             return Ok(carrinhosDto);
         }
 
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<CarrinhoDTO>> Get(int id)
+        {
+            var carrinho = await _uof.CarrinhoRepository.GetAsync(id);
+            if (carrinho == null)
+            {
+                return NotFound();
+            }
+            var carrinhoDto = _mapper.Map<CarrinhoDTO>(carrinho);
+            return Ok(carrinhoDto);
+        }
+
         [HttpPost]
         public async Task<ActionResult<CarrinhoDTO>> Create()
         {
@@ -39,27 +53,89 @@ namespace ApiPDV.Controllers
             var carrinhoCriado = _uof.CarrinhoRepository.Create(carrinho);
             await _uof.CommitAsync();
             var carrinhoDto = _mapper.Map<CarrinhoDTO>(carrinhoCriado);
+            SetCache<Carrinho>(CacheKey, carrinho);
             return Ok(carrinhoDto);
         }
 
-        [HttpPost("{id:int}")]
-        public async Task<ActionResult<CarrinhoDTO>> AddToCart(int id, [FromBody]string barCode)
+        [HttpPut]
+        public async Task<ActionResult<CarrinhoDTO>> AdicionarAoCarrinho([FromBody] string barCode)
         {
             var produto = await _uof.ProdutoRepository.FindByBarCode(barCode);
-            var carrinho = await _uof.CarrinhoRepository.GetAsync(c => c.Id == id);
-            if(carrinho == null)
+            if (_cache.TryGetValue(CacheKey, out Carrinho? carrinho))
+            {
+                if (carrinho == null)
+                {
+                    return NotFound("Carrinho não encontrado!!");
+                }
+
+                var produtoCarrinho = carrinho.Produtos.Where(p => p.ProdutoId == produto.Id).FirstOrDefault();
+                if (produtoCarrinho != null)
+                {
+                    produtoCarrinho.Quantidade++;
+
+                }
+                else
+                {
+                    produtoCarrinho = new ProdutoCarrinho { Produto = produto, Quantidade = 1, ValorUnitario = produto.Preco };
+                    carrinho.Produtos.Add(produtoCarrinho);
+                }
+                _uof.CarrinhoRepository.Update(carrinho);
+                SetCache<Carrinho>(CacheKey, carrinho);
+                await _uof.CommitAsync();
+            }
+            else
             {
                 return BadRequest();
             }
-            var produtoCarrinho = new ProdutoCarrinho { Produto = produto, Quantidade =1, ValorUnitario = produto.Preco };
-            carrinho.Produtos.Add(produtoCarrinho);
-            await _uof.CommitAsync();
             var carrinhoDto = _mapper.Map<CarrinhoDTO>(carrinho);
+            
             return Ok(carrinhoDto);
 
 
 
         }
+
+        [HttpPut("/quantiadeproduto/{id:int}")]
+        public async Task<ActionResult<CarrinhoDTO>> AlterarQuantidade(int id, [FromBody] int quantidade)
+        {
+            if(quantidade < 0)
+            {
+                return BadRequest("A quantidade precisa ser maior que 0");
+            }
+            if (_cache.TryGetValue(CacheKey, out Carrinho? carrinho))
+            {
+                if(carrinho is null)
+                {
+                    return NotFound("Carrinho não encontrado");
+                }
+                var produtoCarrinho = carrinho.Produtos.FirstOrDefault(pc => pc.Id == id);
+                
+                if(produtoCarrinho is null)
+                {
+                    return NotFound("Produto não encontrado");
+                }
+                if (quantidade == 0)
+                {
+                    carrinho.Produtos.Remove(produtoCarrinho);
+                    _uof.ProdutoCarrinhoRepository.Delete(produtoCarrinho);
+                }
+                else
+                {
+                    produtoCarrinho.Quantidade = quantidade;
+                }
+                _uof.CarrinhoRepository.Update(carrinho);
+                SetCache<Carrinho>(CacheKey, carrinho);
+                await _uof.CommitAsync();
+            }
+            else
+            {
+                return BadRequest();
+            }
+            var carrinhoDto = _mapper.Map<CarrinhoDTO>(carrinho);
+
+            return Ok(carrinhoDto);
+        }
+
 
         [HttpDelete("{id:int}")]
         public async Task<ActionResult<CarrinhoDTO>> Delete(int id)
@@ -70,5 +146,18 @@ namespace ApiPDV.Controllers
             var carrinhoExcluidoDto = _mapper.Map<CarrinhoDTO>(carrinhoExcluido);
             return Ok(carrinhoExcluidoDto);
         }
+
+        public void SetCache<T>(string key, T data)
+        {
+            var cacheOptions = new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10),
+                SlidingExpiration = TimeSpan.FromMinutes(5),
+                Priority = CacheItemPriority.High
+            };
+            _cache.Set(key, data, cacheOptions);
+        }
+
+
     }
 }

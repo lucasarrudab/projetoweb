@@ -20,6 +20,8 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
 builder.Services.AddScoped<ICarrinhoRepository, CarrinhoRepository>();
+builder.Services.AddScoped<IProdutoCarrinhoRepository, ProdutoCarrinhoRepository>();
+builder.Services.AddMemoryCache();
 
 builder.Services.AddAutoMapper(typeof(DTOMapping));
 

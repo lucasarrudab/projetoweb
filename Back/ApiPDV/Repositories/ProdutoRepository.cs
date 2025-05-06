@@ -13,7 +13,7 @@ namespace ApiPDV.Repositories
 
         public async Task<Produto> FindByBarCode(string barCode)
         {
-            var produto = await _context.Produtos.Where(p => p.Codigo.Equals(barCode)).FirstOrDefaultAsync();
+            var produto = await _context.Produtos.Where(p => p.Codigo.Equals(barCode)).AsNoTracking().FirstOrDefaultAsync();
             return produto;
         }
 

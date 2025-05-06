@@ -4,6 +4,7 @@
     {
         IProdutoRepository ProdutoRepository { get; }
         ICarrinhoRepository CarrinhoRepository { get; }
+        IProdutoCarrinhoRepository ProdutoCarrinhoRepository { get; }
         Task CommitAsync();
     }
 }
