@@ -26,6 +26,10 @@ namespace ApiPDV.Controllers
             _cache = cache;
         }
 
+
+        /// <summary>
+        /// Retorna todos os produtos disponíveis.
+        /// </summary>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CarrinhoDTO>>> GetAllAsync()
         {
@@ -58,9 +62,22 @@ namespace ApiPDV.Controllers
         }
 
         [HttpPut]
-        public async Task<ActionResult<CarrinhoDTO>> AdicionarAoCarrinho([FromBody] string barCode)
+        public async Task<ActionResult<CarrinhoDTO>> AdicionarAoCarrinho([FromBody] int code)
         {
-            var produto = await _uof.ProdutoRepository.FindByBarCode(barCode);
+            Produto produto;
+           
+            if (code.ToString().Length >= 7)
+            {
+                var codBarras = code.ToString();
+               produto = await _uof.ProdutoRepository.GetNoTrackingAsync(p => p.Codigo.Equals(codBarras));
+            }
+            else
+            {
+                produto = await _uof.ProdutoRepository.GetNoTrackingAsync(p => p.Id == code);
+            }
+            if (produto is null)
+                return NotFound("Produto não encontrado");
+            
             if (_cache.TryGetValue(CacheKey, out Carrinho? carrinho))
             {
                 if (carrinho == null)

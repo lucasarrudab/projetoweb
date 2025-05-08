@@ -14,6 +14,7 @@ namespace ApiPDV.Context
         public DbSet<Venda> Vendas { get; set; }
         public DbSet<MetodoPagamento> MetodosPagamento { get; set; }
 
+
         protected override void OnModelCreating(ModelBuilder mb)
         {
            
@@ -36,6 +37,29 @@ namespace ApiPDV.Context
                      Preco = 5.0M,
                      Estoque = 10000
                  });
+
+            mb.Entity<MetodoPagamento>().HasData(
+                new MetodoPagamento
+                {
+                    Id = 1,
+                    Nome = "Dinheiro"
+                },
+                new MetodoPagamento
+                {
+                    Id = 2,
+                    Nome = "Débito"
+                },
+                new MetodoPagamento
+                {
+                    Id = 3,
+                    Nome = "Crédito"
+                },
+                new MetodoPagamento
+                {
+                    Id = 4,
+                    Nome = "PIX"
+                });
+
 
             mb.Entity<Carrinho>()
                 .HasMany(c => c.Produtos)

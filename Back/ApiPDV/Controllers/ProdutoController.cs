@@ -25,6 +25,9 @@ namespace ApiPDV.Controllers
 
         }
 
+        /// <summary>
+        /// Retorna todos os produtos disponíveis.
+        /// </summary>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProdutoResponseDTO>>> GetAllAsync()
         {

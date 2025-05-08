@@ -10,8 +10,8 @@ namespace ApiPDV.DTOs.Request
         [MaxLength(100)]
         public string? Nome { get; set; }
         [Required(ErrorMessage = "Insira o código do produto")]
-        [MinLength(8)]
-        [MaxLength(14)]
+
+        [RegularExpression(@"^\d{8,14}$", ErrorMessage = "O código de barras deve ter entre 8 e 14 dígitos numéricos.")]
         public string? Codigo { get; set; }
         [Required(ErrorMessage = "Insira o valor do produto")]
         [Column(TypeName = "decimal(12,2)")]

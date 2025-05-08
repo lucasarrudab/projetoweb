@@ -11,9 +11,9 @@ namespace ApiPDV.Repositories
 
         public ProdutoRepository(AppDbContext context) : base(context) { }
 
-        public async Task<Produto> FindByBarCode(string barCode)
+        public async Task<Produto> GetNoTrackingAsync(Expression<Func<Produto, bool>> predicate)
         {
-            var produto = await _context.Produtos.Where(p => p.Codigo.Equals(barCode)).AsNoTracking().FirstOrDefaultAsync();
+            var produto = await _context.Produtos.Where(predicate).AsNoTracking().FirstOrDefaultAsync();
             return produto;
         }
 

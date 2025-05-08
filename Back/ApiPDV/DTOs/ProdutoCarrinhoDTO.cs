@@ -7,7 +7,7 @@ namespace ApiPDV.DTOs
     public class ProdutoCarrinhoDTO
     {
         public int Id { get; set; }
-        public ProdutoResponseDTO? ProdutoResponseDto { get; set; }
+        public string? ProdutoNome { get; set; }
         public int ProdutoId { get; set; }
         [Range(0,9999)]
         public int Quantidade { get; set; }

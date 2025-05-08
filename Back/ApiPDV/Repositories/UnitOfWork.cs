@@ -9,6 +9,8 @@ public class UnitOfWork : IUnitOfWork
     private IProdutoRepository _produtoRepo;
     private ICarrinhoRepository _carrinhoRepo;
     private IProdutoCarrinhoRepository _produtoCarrinhoRepo;
+    private IVendaRepository _vendaRepo;
+    private IMetodoPagamentoRepository _metodoPagamentoRepo;
     public AppDbContext _context;
 
     public UnitOfWork(AppDbContext context)
@@ -37,6 +39,20 @@ public class UnitOfWork : IUnitOfWork
         get
         {
             return _produtoCarrinhoRepo = _produtoCarrinhoRepo ?? new ProdutoCarrinhoRepository(_context);
+        }
+    }
+    public IVendaRepository VendaRepository
+    {
+        get
+        {
+            return _vendaRepo = _vendaRepo ?? new VendaRepository(_context);
+        }
+    }
+    public IMetodoPagamentoRepository MetodoPagamentoRepository
+    {
+        get
+        {
+            return _metodoPagamentoRepo = _metodoPagamentoRepo ?? new MetodoPagamentoRepository(_context);
         }
     }
 

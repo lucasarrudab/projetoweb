@@ -2,6 +2,7 @@ using ApiPDV.Context;
 using ApiPDV.DTOs.Mapping;
 using ApiPDV.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +10,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+
+builder.Services.AddSwaggerGen(options =>
+{
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    options.IncludeXmlComments(xmlPath);
+});
+
 
 var mySqlConnection = builder.Configuration.GetConnectionString("AppContext");
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -21,6 +29,8 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
 builder.Services.AddScoped<ICarrinhoRepository, CarrinhoRepository>();
 builder.Services.AddScoped<IProdutoCarrinhoRepository, ProdutoCarrinhoRepository>();
+builder.Services.AddScoped<IVendaRepository, VendaRepository>();
+builder.Services.AddScoped<IMetodoPagamentoRepository,MetodoPagamentoRepository>();
 builder.Services.AddMemoryCache();
 
 builder.Services.AddAutoMapper(typeof(DTOMapping));
@@ -35,8 +45,8 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.UseSwaggerUI(options =>
-         options.SwaggerEndpoint("/openapi/v1.json", "PDV api"));
+    app.UseSwagger();
+    app.UseSwaggerUI(options => options.SwaggerEndpoint("/swagger/v1/swagger.json", "PDV API v1"));
 }
 
 app.UseHttpsRedirection();
