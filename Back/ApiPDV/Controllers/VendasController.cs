@@ -1,5 +1,6 @@
 ﻿using ApiPDV.DTOs;
 using ApiPDV.Models;
+using ApiPDV.Pagination;
 using ApiPDV.Repositories;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
@@ -45,6 +46,48 @@ namespace ApiPDV.Controllers
 
         }
 
+        [HttpGet("pagination")]
+        public async Task<ActionResult<PagedList<VendaDTO>>> GetAllPaged([FromQuery] VendasParameters vendasParameters)
+        {
+            var vendas = await _uof.VendaRepository
+                .GetAllIncludePagedAsync(null, v => v.Data, vendasParameters.PageNumber, vendasParameters.PageSize);
+            var vendasDto = _mapper.Map<PagedList<VendaDTO>>(vendas);
+            return Ok(vendasDto);
+        }
+
+        [HttpGet("filter/pagination/date")]
+        public async Task<ActionResult<PagedList<VendaDTO>>> GetAllPaged([FromQuery] VendasFiltroData vendasParameters)
+        {
+            var vendas = await _uof.VendaRepository.GetAllDay(vendasParameters);
+            var vendasDto = _mapper.Map<IEnumerable<VendaDTO>>(vendas);
+            return Ok (vendasDto);
+
+        }
+
+        [HttpGet("filter/pagination/month")]
+        public async Task<ActionResult<PagedList<VendaDTO>>> GetAllPagedMonth([FromQuery] VendaFiltroMes vendasParameters)
+        {
+            var vendas = await _uof.VendaRepository.GetAllMonth(vendasParameters);
+            if(!vendas.Any())
+            {
+                return NotFound("Não foram encontradas vendas nesse filtro");
+            }
+            var vendasDto = _mapper.Map<IEnumerable<VendaDTO>>(vendas);
+            return Ok(vendasDto);
+
+        }
+
+        [HttpGet("filter/pagination/payment")]
+        public async Task<ActionResult<PagedList<VendaDTO>>> GetAllPagedPayment([FromQuery] VendaFiltroPagamento vendasParameters)
+        {
+            var vendas = await _uof.VendaRepository.GetAllPayment(vendasParameters);
+            var vendasDto = _mapper.Map<IEnumerable<VendaDTO>>(vendas);
+            return Ok(vendasDto);
+
+        }
+
+
+
         [HttpPost]
         public async Task<ActionResult<VendaDTO>> RealizarVenda([FromBody]string nomeMetodoPagamento)
         {
@@ -81,5 +124,7 @@ namespace ApiPDV.Controllers
 
 
         }
+
+       
     }
 }
