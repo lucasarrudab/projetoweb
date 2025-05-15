@@ -86,6 +86,15 @@ namespace ApiPDV.Controllers
 
         }
 
+        [HttpGet("filter/pagination/days")]
+        public async Task<ActionResult<PagedList<VendaDTO>>> GetAllPageddays([FromQuery] VendasFiltroDias vendasParameters)
+        {
+            var vendas = await _uof.VendaRepository.GetAllDays(vendasParameters);
+            var vendasDto = _mapper.Map<IEnumerable<VendaDTO>>(vendas);
+            return Ok(vendasDto);
+
+        }
+
 
 
         [HttpPost]

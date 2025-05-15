@@ -1,10 +1,12 @@
 ﻿using ApiPDV.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.Emit;
 
 namespace ApiPDV.Context
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<AplicationUser>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -17,8 +19,8 @@ namespace ApiPDV.Context
 
         protected override void OnModelCreating(ModelBuilder mb)
         {
-           
 
+            base.OnModelCreating(mb);
 
             mb.Entity<Produto>().HasData(
                 new Produto

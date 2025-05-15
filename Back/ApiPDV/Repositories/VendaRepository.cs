@@ -64,6 +64,15 @@ namespace ApiPDV.Repositories
 
         }
 
+        public async Task<IEnumerable<Venda>> GetAllDays(VendasFiltroDias vendasParameters)
+        {
+
+            return await GetAllIncludePagedAsync(v =>(DateTime.Now.DayOfYear - v.Data.DayOfYear) <= (vendasParameters.Dias-1), v =>v.Data , vendasParameters.PageNumber, vendasParameters.PageSize);
+
+
+        }
+
+
 
 
 

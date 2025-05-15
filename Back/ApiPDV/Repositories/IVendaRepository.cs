@@ -14,5 +14,6 @@ namespace ApiPDV.Repositories
         Task<IEnumerable<Venda>> GetAllDay(VendasFiltroData vendasParameters);
         Task<IEnumerable<Venda>> GetAllMonth(VendaFiltroMes vendasParameters);
         Task<IEnumerable<Venda>> GetAllPayment(VendaFiltroPagamento vendasParameters);
+        Task<IEnumerable<Venda>> GetAllDays(VendasFiltroDias vendasParameters);
     }
 }

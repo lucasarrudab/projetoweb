@@ -5,12 +5,13 @@ using ApiPDV.Models;
 using ApiPDV.Pagination;
 using ApiPDV.Repositories;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
 namespace ApiPDV.Controllers
 {
-
+    
     [Route("[controller]")]
     [ApiController]
     public class ProdutoController : Controller
@@ -29,6 +30,7 @@ namespace ApiPDV.Controllers
         /// Retorna todos os produtos disponíveis.
         /// </summary>
         [HttpGet]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         public async Task<ActionResult<IEnumerable<ProdutoResponseDTO>>> GetAllAsync()
         {
             var produtos = await _uof.ProdutoRepository.GetAllAsync();
