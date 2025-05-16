@@ -29,6 +29,9 @@ public class AuthController : ControllerBase
         _logger = logger;
     }
 
+    /// <summary>
+    /// Verifica as credenciais de um usuário
+    /// </summary>
     [HttpPost]
     [Route("login")]
     public async Task<IActionResult> Login([FromBody] LoginModel model)
@@ -43,6 +46,7 @@ public class AuthController : ControllerBase
                     new Claim(ClaimTypes.Name, user.UserName!),
                     new Claim(ClaimTypes.Email, user.Email!),
                     new Claim("id", user.UserName!),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 };
 
@@ -52,7 +56,7 @@ public class AuthController : ControllerBase
 
             }
 
-            var token = _tokenService.GenerateAcessToken(authClaims, _configuration);
+            var token = _tokenService.GenerateAccessToken(authClaims, _configuration);
 
             var refreshToken = _tokenService.GenerateRefreshToken();
 
@@ -76,6 +80,9 @@ public class AuthController : ControllerBase
         return Unauthorized();
     }
 
+    /// <summary>
+    /// Registra um novo usuário
+    /// </summary>
     [HttpPost]
     [Route("register")]
     public async Task<IActionResult> Register([FromBody] RegisterModel model)
@@ -105,36 +112,44 @@ public class AuthController : ControllerBase
         return Ok(new LoginResponse { Status = "Sucess", Message = "User created sucessfully!" });
     }
 
+    /// <summary>
+    /// Gera um novo token de acesso
+    /// </summary>
     [HttpPost]
     [Route("refresh-token")]
     public async Task<IActionResult> RefreshToken(TokenModel tokenModel)
     {
-        if (tokenModel == null)
+
+        if (tokenModel is null)
         {
             return BadRequest("Invalid client request");
         }
-        string? acessToken = tokenModel.AcessToken ?? throw new ArgumentNullException(nameof(tokenModel));
 
-        string? refreshToken = tokenModel.RefreshToken ?? throw new ArgumentNullException(nameof(tokenModel));
+        string? accessToken = tokenModel.AccessToken
+                              ?? throw new ArgumentNullException(nameof(tokenModel));
 
-        var principal = _tokenService.GetPrincipalFromExpiredToken(acessToken!, _configuration);
+        string? refreshToken = tokenModel.RefreshToken
+                               ?? throw new ArgumentException(nameof(tokenModel));
+
+        var principal = _tokenService.GetPrincipalFromExpiredToken(accessToken!, _configuration);
 
         if (principal == null)
         {
-            return BadRequest("Invalid acess token/refresh token");
-
+            return BadRequest("Invalid access token/refresh token");
         }
 
         string username = principal.Identity.Name;
 
-        var user = await _userManager.FindByNameAsync(username);
+        var user = await _userManager.FindByNameAsync(username!);
 
-        if (user == null || user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= DateTime.Now)
+        if (user == null || user.RefreshToken != refreshToken
+                         || user.RefreshTokenExpiryTime <= DateTime.Now)
         {
-            return BadRequest("Invalid acess token / refresh token");
+            return BadRequest("Invalid access token/refresh token");
         }
 
-        var newAcessToken = _tokenService.GenerateAcessToken(principal.Claims.ToList(), _configuration);
+        var newAccessToken = _tokenService.GenerateAccessToken(
+                                           principal.Claims.ToList(), _configuration);
 
         var newRefreshToken = _tokenService.GenerateRefreshToken();
 
@@ -142,10 +157,20 @@ public class AuthController : ControllerBase
 
         await _userManager.UpdateAsync(user);
 
-        return Ok(newAcessToken);
+        return new ObjectResult(new
+        {
+            accessToken = new JwtSecurityTokenHandler().WriteToken(newAccessToken),
+            refreshToken = newRefreshToken
+        });
     }
 
-    [Authorize(Policy = "ExclusiveOnly")]
+    /// <summary>
+    /// Revoga um refresh token
+    /// </summary>
+    /// /// <remarks>
+    /// Acesso restrito ao perfil: <b>Admin</b>.
+    /// </remarks>
+    [Authorize(Policy = "AdminOnly")]
     [HttpPost]
     [Route("revoke/{username}")]
     public async Task<IActionResult> Revoke(string username)
@@ -161,9 +186,15 @@ public class AuthController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Cria um novo cargo
+    /// </summary>
+    /// /// <remarks>
+    /// Acesso restrito ao perfil: <b>Admin</b>.
+    /// </remarks>
     [HttpPost]
-    [Authorize(Policy = "SuperAdminOnly")]
     [Route("CreateRole")]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> CreateRole(string roleName)
     {
         var roleExist = await _roleManager.RoleExistsAsync(roleName);
@@ -197,9 +228,15 @@ public class AuthController : ControllerBase
 
     }
 
+    /// <summary>
+    /// Adiciona um usuario a um cargo
+    /// </summary>
+    /// /// <remarks>
+    /// Acesso restrito ao perfil: <b>Admin</b>.
+    /// </remarks>
     [HttpPost]
-    [Authorize(Policy = "SuperAdminRole")]
     [Route("AddUserToRole")]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> AddUserToRole(string email, string roleName)
     {
         var user = await _userManager.FindByEmailAsync(email);
@@ -231,5 +268,36 @@ public class AuthController : ControllerBase
             }
         }
         return BadRequest(new { Error = "Unable to find user" });
+    }
+
+    /// <summary>
+    /// Realiza o logout
+    /// </summary>
+    [Authorize]
+    [HttpPost]
+    [Route("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (userId == null)
+            return Unauthorized("Usuário não autenticado.");
+
+        var user = await _userManager.FindByIdAsync(userId);
+
+        if (user == null)
+            return NotFound("Usuário não encontrado.");
+
+        // Invalida o refresh token
+        user.RefreshToken = null;
+        user.RefreshTokenExpiryTime = DateTime.MinValue;
+
+        await _userManager.UpdateAsync(user);
+
+        return Ok(new LoginResponse
+        {
+            Status = "Sucesso",
+            Message = "Logout realizado com sucesso. Token revogado."
+        });
     }
 }

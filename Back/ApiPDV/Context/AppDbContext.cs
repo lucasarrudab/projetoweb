@@ -62,6 +62,7 @@ namespace ApiPDV.Context
                     Nome = "PIX"
                 });
 
+            
 
             mb.Entity<Carrinho>()
                 .HasMany(c => c.Produtos)

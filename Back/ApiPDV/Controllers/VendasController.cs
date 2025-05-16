@@ -3,6 +3,7 @@ using ApiPDV.Models;
 using ApiPDV.Pagination;
 using ApiPDV.Repositories;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using System.Runtime.CompilerServices;
@@ -27,17 +28,29 @@ namespace ApiPDV.Controllers
             _cache = memoryCache;
         }
 
+        /// <summary>
+        /// Retorna todas as vendas
+        /// </summary>
+        /// <remarks>
+        /// Acesso somente ao logar
+        /// </remarks>
         [HttpGet]
+        [Authorize(Policy = "All")]
         public async Task<ActionResult<IEnumerable<VendaDTO>>> GetAllVendas()
         {
             var vendas = await _uof.VendaRepository.GetAllIncludeAsync();
             var vendasDto = _mapper.Map<IEnumerable<VendaDTO>>(vendas);
             return Ok(vendasDto);
         }
+
         /// <summary>
-        /// Retorna todos os produtos disponíveis.
+        /// Retorna uma venda pelo id
         /// </summary>
+        /// <remarks>
+        /// Acesso somente ao logar.
+        /// </remarks>
         [HttpGet("{id:int}")]
+        [Authorize(Policy = "All")]
         public async Task<ActionResult<VendaDTO>> GetVenda(int id)
         {
             var venda = await _uof.VendaRepository.GetIncludeAsync(id);
@@ -46,7 +59,14 @@ namespace ApiPDV.Controllers
 
         }
 
+        /// <summary>
+        /// Retorna todas as vendas com paginação
+        /// </summary>
+        /// <remarks>
+        /// Acesso somente ao logar.
+        /// </remarks>
         [HttpGet("pagination")]
+        [Authorize]
         public async Task<ActionResult<PagedList<VendaDTO>>> GetAllPaged([FromQuery] VendasParameters vendasParameters)
         {
             var vendas = await _uof.VendaRepository
@@ -55,7 +75,14 @@ namespace ApiPDV.Controllers
             return Ok(vendasDto);
         }
 
+        /// <summary>
+        /// Retorna todas as vendas com paginação e filtro por data
+        /// </summary>
+        /// <remarks>
+        /// Acesso somente ao logar.
+        /// </remarks>
         [HttpGet("filter/pagination/date")]
+        [Authorize]
         public async Task<ActionResult<PagedList<VendaDTO>>> GetAllPaged([FromQuery] VendasFiltroData vendasParameters)
         {
             var vendas = await _uof.VendaRepository.GetAllDay(vendasParameters);
@@ -64,7 +91,14 @@ namespace ApiPDV.Controllers
 
         }
 
+        /// <summary>
+        /// Retorna todas as vendas com paginação e filtro por mês
+        /// </summary>
+        /// <remarks>
+        /// Acesso somente ao logar.
+        /// </remarks>
         [HttpGet("filter/pagination/month")]
+        [Authorize]
         public async Task<ActionResult<PagedList<VendaDTO>>> GetAllPagedMonth([FromQuery] VendaFiltroMes vendasParameters)
         {
             var vendas = await _uof.VendaRepository.GetAllMonth(vendasParameters);
@@ -77,7 +111,14 @@ namespace ApiPDV.Controllers
 
         }
 
+        /// <summary>
+        /// Retorna todas as vendas com paginação e filtro por tipo de pagamento
+        /// </summary>
+        /// <remarks>
+        /// Acesso somente ao logar.
+        /// </remarks>
         [HttpGet("filter/pagination/payment")]
+        [Authorize]
         public async Task<ActionResult<PagedList<VendaDTO>>> GetAllPagedPayment([FromQuery] VendaFiltroPagamento vendasParameters)
         {
             var vendas = await _uof.VendaRepository.GetAllPayment(vendasParameters);
@@ -86,7 +127,14 @@ namespace ApiPDV.Controllers
 
         }
 
+        /// <summary>
+        /// Retorna todas as vendas com paginação e filtro nos ultimos X dias
+        /// </summary>
+        /// <remarks>
+        /// Acesso somente ao logar.
+        /// </remarks>
         [HttpGet("filter/pagination/days")]
+        [Authorize]
         public async Task<ActionResult<PagedList<VendaDTO>>> GetAllPageddays([FromQuery] VendasFiltroDias vendasParameters)
         {
             var vendas = await _uof.VendaRepository.GetAllDays(vendasParameters);
@@ -96,8 +144,15 @@ namespace ApiPDV.Controllers
         }
 
 
-
+        /// <summary>
+        /// Realiza a venda do carrinho salvo no cache
+        /// </summary>
+        /// <param name="nomeMetodoPagamento">Dinheiro, debito, credito ou pix</param>
+        /// <remarks>
+        /// Acesso somente ao logar.
+        /// </remarks>
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<VendaDTO>> RealizarVenda([FromBody]string nomeMetodoPagamento)
         {
            

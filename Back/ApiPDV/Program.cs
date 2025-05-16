@@ -52,6 +52,10 @@ builder.Services.AddSwaggerGen(c =>
                 });
 });
 
+builder.Services.AddIdentity<AplicationUser, IdentityRole>().
+    AddEntityFrameworkStores<AppDbContext>().
+    AddDefaultTokenProviders();
+
 var secretKey = builder.Configuration["JWT:secretKey"] ?? throw new ArgumentException("Chave secreta invalida!!");
 
 builder.Services.AddAuthentication(options =>
@@ -75,9 +79,20 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddIdentity<AplicationUser, IdentityRole>().
-    AddEntityFrameworkStores<AppDbContext>().
-    AddDefaultTokenProviders();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("FuncionarioOnly", policy => policy.RequireRole("Funcionario"));
+    options.AddPolicy("GerenteOnly", policy => policy.RequireRole("Gerente"));
+    options.AddPolicy("All", policy => policy.RequireAssertion(context =>
+                      context.User.IsInRole("Admin") || context.User.IsInRole("Funcionario") ||
+                      context.User.IsInRole("Gerente")));
+    options.AddPolicy("Management", policy => policy.RequireAssertion(context =>
+                      context.User.IsInRole("Admin") ||
+                      context.User.IsInRole("Gerente")));
+});
+
+
 
 var mySqlConnection = builder.Configuration.GetConnectionString("AppContext");
 builder.Services.AddDbContext<AppDbContext>(options =>

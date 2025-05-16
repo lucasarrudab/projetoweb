@@ -2,6 +2,7 @@
 using ApiPDV.Models;
 using ApiPDV.Repositories;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using System.Runtime.CompilerServices;
@@ -28,9 +29,13 @@ namespace ApiPDV.Controllers
 
 
         /// <summary>
-        /// Retorna todos os produtos disponíveis.
+        /// Retorna todos os carrinhos
         /// </summary>
+        /// <remarks>
+        /// Acesso restrito ao perfil: <b>Admin ou Gerente</b>.
+        /// </remarks>
         [HttpGet]
+        [Authorize(Policy = "Management")]
         public async Task<ActionResult<IEnumerable<CarrinhoDTO>>> GetAllAsync()
         {
             var carrinhos = await _uof.CarrinhoRepository.GetAllAsync();
@@ -38,7 +43,14 @@ namespace ApiPDV.Controllers
             return Ok(carrinhosDto);
         }
 
+        /// <summary>
+        /// Retorna um carringo por id
+        /// </summary>
+        /// <remarks>
+        /// Acesso restrito ao perfil: <b>Admin ou Gerente</b>.
+        /// </remarks>
         [HttpGet("{id:int}")]
+        [Authorize(Policy = "Management")]
         public async Task<ActionResult<CarrinhoDTO>> Get(int id)
         {
             var carrinho = await _uof.CarrinhoRepository.GetAsync(id);
@@ -50,7 +62,14 @@ namespace ApiPDV.Controllers
             return Ok(carrinhoDto);
         }
 
+        /// <summary>
+        /// Cria um novo carrinho vazio e salva no cache
+        /// </summary>
+        /// <remarks>
+        /// Acesso somente ao logar.
+        /// </remarks>
         [HttpPost]
+        [Authorize(Policy = "All")]
         public async Task<ActionResult<CarrinhoDTO>> Create()
         {
             var carrinho = new Carrinho { Situacao = Models.Enum.StatusCarrinho.Aberto };
@@ -61,7 +80,15 @@ namespace ApiPDV.Controllers
             return Ok(carrinhoDto);
         }
 
+        /// <summary>
+        /// Adiciona um produto ao carrinho salvo no cache
+        /// </summary>
+        /// <remarks>
+        /// <param name="code">Id ou codigo de barras</param> 
+        /// Acesso somente ao logar.
+        /// </remarks>
         [HttpPut]
+        [Authorize(Policy = "All")]
         public async Task<ActionResult<CarrinhoDTO>> AdicionarAoCarrinho([FromBody] int code)
         {
             Produto produto;
@@ -112,7 +139,16 @@ namespace ApiPDV.Controllers
 
         }
 
+        /// <summary>
+        /// altera a quantidade de um produto do carrinho no cache
+        /// </summary>
+        /// <param name="id">id do produtocarrinho</param>
+        /// <param name="quantidade">Nova quantidade</param>
+        /// <remarks>
+        /// Acesso somente ao logar.
+        /// </remarks>
         [HttpPut("/quantiadeproduto/{id:int}")]
+        [Authorize(Policy = "All")]
         public async Task<ActionResult<CarrinhoDTO>> AlterarQuantidade(int id, [FromBody] int quantidade)
         {
             if(quantidade < 0)
@@ -153,8 +189,15 @@ namespace ApiPDV.Controllers
             return Ok(carrinhoDto);
         }
 
-
+        /// <summary>
+        /// Deleta um carrinho
+        /// </summary>
+        /// <param name="id">id do carrinho</param>
+        /// <remarks>
+        /// Acesso restrito ao perfil: <b>Admin</b>.
+        /// </remarks>
         [HttpDelete("{id:int}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult<CarrinhoDTO>> Delete(int id)
         {
             var carrinho = await _uof.CarrinhoRepository.GetAsync(c => c.Id == id);
