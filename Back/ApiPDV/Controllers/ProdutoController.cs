@@ -95,16 +95,19 @@ namespace ApiPDV.Controllers
         [HttpPut("{id:int}")]
         public async Task<ActionResult<ProdutoResponseDTO>> Put(ProdutoRequestDTO produtoDto, int id)
         {
+            var produtoExistente = await _uof.ProdutoRepository.GetAsync(p => p.Id == id);
+        if (produtoExistente is null)
+            return NotFound("Produto não encontrado.");
 
-            var produto = _mapper.Map<Produto>(produtoDto);
-            var produtoAtualizado = _uof.ProdutoRepository.Update(produto);
-            await _uof.CommitAsync();
-            var produtoAtualizadoDto = _mapper.Map<ProdutoResponseDTO>(produtoAtualizado);
-            return Ok(produtoAtualizadoDto);
+        _mapper.Map(produtoDto, produtoExistente); // Atualiza os campos do produto existente
+        var produtoAtualizado = _uof.ProdutoRepository.Update(produtoExistente);
+        await _uof.CommitAsync();
 
-        }
+        var produtoAtualizadoDto = _mapper.Map<ProdutoResponseDTO>(produtoAtualizado);
+        return Ok(produtoAtualizadoDto);
+}
 
-        [HttpPut]
+        [HttpPut("estoque/{id:int}")]
         public async Task<ActionResult<ProdutoResponseDTO>> AddEstoque(int id, [FromBody]int quantidade)
         {
             var produto = await _uof.ProdutoRepository.GetAsync(p => p.Id == id);
@@ -115,7 +118,7 @@ namespace ApiPDV.Controllers
             return Ok (produtoDto);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id:int}")]
         public async Task<ActionResult<Produto>> Delete(int id)
         {
             var produto = await _uof.ProdutoRepository.GetAsync(p => p.Id == id);
@@ -148,3 +151,5 @@ namespace ApiPDV.Controllers
 
     }
 }
+
+
