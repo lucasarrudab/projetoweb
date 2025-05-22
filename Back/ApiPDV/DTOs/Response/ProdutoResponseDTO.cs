@@ -2,6 +2,9 @@
 {
     public class ProdutoResponseDTO
     {
+        /// <summary>
+        /// Id do produto
+        /// </summary>
         public int Id { get; set; }
         public string? Nome { get; set; }
         public string? Codigo { get; set; }
