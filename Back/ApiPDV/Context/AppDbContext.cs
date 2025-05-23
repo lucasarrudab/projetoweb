@@ -22,6 +22,8 @@ namespace ApiPDV.Context
 
             base.OnModelCreating(mb);
 
+           
+
             mb.Entity<Produto>().HasData(
                 new Produto
                 {

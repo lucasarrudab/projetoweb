@@ -94,10 +94,8 @@ builder.Services.AddAuthorization(options =>
 
 
 
-var mySqlConnection = builder.Configuration.GetConnectionString("AppContext");
 builder.Services.AddDbContext<AppDbContext>(options =>
-                                            options.UseMySql(mySqlConnection, ServerVersion
-                                            .AutoDetect(mySqlConnection)));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("AppContext")));
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
