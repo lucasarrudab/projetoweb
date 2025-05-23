@@ -123,23 +123,19 @@ namespace ApiPDV.Controllers
         [Authorize(Policy = "Management")]
         public async Task<ActionResult<ProdutoResponseDTO>> Put(ProdutoRequestDTO produtoDto, int id)
         {
+            var produtoExistente = await _uof.ProdutoRepository.GetAsync(p => p.Id == id);
+        if (produtoExistente is null)
+            return NotFound("Produto não encontrado.");
 
-            var produto = _mapper.Map<Produto>(produtoDto);
-            var produtoAtualizado = _uof.ProdutoRepository.Update(produto);
-            await _uof.CommitAsync();
-            var produtoAtualizadoDto = _mapper.Map<ProdutoResponseDTO>(produtoAtualizado);
-            return Ok(produtoAtualizadoDto);
+        _mapper.Map(produtoDto, produtoExistente); // Atualiza os campos do produto existente
+        var produtoAtualizado = _uof.ProdutoRepository.Update(produtoExistente);
+        await _uof.CommitAsync();
 
-        }
+        var produtoAtualizadoDto = _mapper.Map<ProdutoResponseDTO>(produtoAtualizado);
+        return Ok(produtoAtualizadoDto);
+}
 
-        /// <summary>
-        /// Adiciona estoque a um produto
-        /// </summary>
-        /// <remarks>
-        /// Acesso restrito ao perfil: <b>Admin ou Gerente</b>.
-        /// </remarks>
-        [HttpPut("addestoque")]
-        [Authorize(Policy = "Management")]
+        [HttpPut("estoque/{id:int}")]
         public async Task<ActionResult<ProdutoResponseDTO>> AddEstoque(int id, [FromBody]int quantidade)
         {
             var produto = await _uof.ProdutoRepository.GetAsync(p => p.Id == id);
@@ -154,15 +150,7 @@ namespace ApiPDV.Controllers
             return Ok (produtoDto);
         }
 
-        /// <summary>
-        /// Deleta um produto
-        /// </summary>
-        /// <remarks>
-        /// Acesso restrito ao perfil: <b>Admin</b>.
-        /// </remarks>
-        [HttpDelete]
-        [Authorize(Policy = "AdminOnly")]
-        
+        [HttpDelete("{id:int}")]
         public async Task<ActionResult<Produto>> Delete(int id)
         {
             var produto = await _uof.ProdutoRepository.GetAsync(p => p.Id == id);
@@ -195,3 +183,5 @@ namespace ApiPDV.Controllers
 
     }
 }
+
+

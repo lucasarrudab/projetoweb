@@ -3,33 +3,33 @@ import { Link, useNavigate } from 'react-router-dom'
 import { TrashIcon } from '@heroicons/react/24/outline'
 
 export default function Cart({ cart, setCart }) {
-  const navigate = useNavigate()
+  const navegacao = useNavigate()
   
-  const handleQuantityChange = (productId, newQuantity) => {
-    if (newQuantity < 1) {
-      setCart(cart.filter(item => item.id !== productId))
+  const handleQuantityChange = (produtoId, novaQuantidade) => {
+    if (novaQuantidade < 1) {
+      setCart(cart.filter(item => item.id !== produtoId))
     } else {
       setCart(cart.map(item =>
-        item.id === productId ? { ...item, quantity: newQuantity } : item
+        item.id === produtoId ? { ...item, quantidade: novaQuantidade } : item
       ))
     }
   }
 
-  const handleRemoveItem = (productId) => {
-    setCart(cart.filter(item => item.id !== productId))
+  const handleRemoveItem = (produtoId) => {
+    setCart(cart.filter(item => item.id !== produtoId))
   }
 
-  const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0)
+  const subtotal = cart.reduce((total, item) => total + (item.price * item.quantidade), 0)
 
   if (cart.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 mb-4">Your cart is empty.</p>
+        <p className="text-gray-500 mb-4">Seu carrinho está vazio.</p>
         <Link
           to="/"
           className="text-blue-600 hover:text-blue-800 font-medium"
         >
-          Continue Shopping
+          Continuar Comprando
         </Link>
       </div>
     )
@@ -37,7 +37,7 @@ export default function Cart({ cart, setCart }) {
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Shopping Cart</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Carrinho de Compras</h2>
       <div className="space-y-4">
         {cart.map((item) => (
           <div key={item.id} className="flex items-center space-x-4 py-4 border-b">
@@ -53,14 +53,14 @@ export default function Cart({ cart, setCart }) {
             </div>
             <div className="flex items-center space-x-2">
               <button
-                onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                onClick={() => handleQuantityChange(item.id, item.quantidade - 1)}
                 className="text-gray-500 hover:text-gray-700"
               >
                 -
               </button>
-              <span className="px-4 py-2 border rounded">{item.quantity}</span>
+              <span className="px-4 py-2 border rounded">{item.quantidade}</span>
               <button
-                onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                onClick={() => handleQuantityChange(item.id, item.quantidade + 1)}
                 className="text-gray-500 hover:text-gray-700"
               >
                 +
@@ -80,17 +80,17 @@ export default function Cart({ cart, setCart }) {
           to="/"
           className="text-blue-600 hover:text-blue-800 font-medium"
         >
-          Continue Shopping
+          Continuar Comprando
         </Link>
         <div className="text-right">
           <p className="text-lg font-bold text-gray-900">
             Subtotal: R$ {subtotal.toFixed(2)}
           </p>
           <button
-            onClick={() => navigate('/checkout')}
+            onClick={() => navegacao('/checkout')}
             className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
           >
-            Proceed to Checkout
+            Finalizar Compra
           </button>
         </div>
       </div>

@@ -2,39 +2,87 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 export default function Checkout({ cart, onComplete }) {
-  const navigate = useNavigate()
-  const [paymentMethod, setPaymentMethod] = useState('credit')
-  const [formData, setFormData] = useState({
-    cardNumber: '',
-    cardName: '',
-    expiryDate: '',
+  const navegacao = useNavigate()
+  const [metodoPagamento, setMetodoPagamento] = useState('credit')
+  const [dadosFormulario, setDadosFormulario] = useState({
+    numeroCartao: '',
+    nomeCartao: '',
+    dataValidade: '',
     cvv: '',
-    pixKey: '',
+    chavePix: '',
   })
+  const [erros, setErros] = useState({})
 
-  const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0)
+  const subtotal = cart.reduce((total, item) => total + (item.price * item.quantidade), 0)
+
+  const validarDataValidade = (valor) => {
+    const regex = /^(0[1-9]|1[0-2])\/([0-9]{2})$/
+    if (!regex.test(valor)) {
+      return 'Por favor, insira uma data válida (MM/AA)'
+    }
+    
+    const [mes, ano] = valor.split('/')
+    const validade = new Date(2000 + parseInt(ano), parseInt(mes) - 1)
+    const hoje = new Date()
+    
+    if (validade < hoje) {
+      return 'Cartão vencido'
+    }
+    
+    return ''
+  }
+
+  const handleDataValidadeChange = (e) => {
+    let valor = e.target.value.replace(/\D/g, '')
+    if (valor.length >= 2) {
+      valor = valor.slice(0, 2) + '/' + valor.slice(2, 4)
+    }
+    setDadosFormulario({ ...dadosFormulario, dataValidade: valor })
+    
+    const erro = validarDataValidade(valor)
+    setErros({ ...erros, dataValidade: erro })
+  }
+
+  const handleCvvChange = (e) => {
+    const valor = e.target.value.replace(/\D/g, '').slice(0, 3)
+    setDadosFormulario({ ...dadosFormulario, cvv: valor })
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    
+    if (metodoPagamento === 'credit' || metodoPagamento === 'debit') {
+      const erroDataValidade = validarDataValidade(dadosFormulario.dataValidade)
+      if (erroDataValidade) {
+        setErros({ ...erros, dataValidade: erroDataValidade })
+        return
+      }
+      
+      if (dadosFormulario.cvv.length !== 3) {
+        setErros({ ...erros, cvv: 'CVV deve ter 3 dígitos' })
+        return
+      }
+    }
+    
     onComplete({
-      method: paymentMethod,
-      details: formData
+      method: metodoPagamento,
+      details: dadosFormulario
     })
-    navigate('/')
+    navegacao('/')
   }
 
   return (
     <div className="max-w-2xl mx-auto">
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Checkout</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Finalizar Compra</h2>
         
         <div className="mb-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Order Summary</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Resumo do Pedido</h3>
           <div className="space-y-2">
             {cart.map((item) => (
               <div key={item.id} className="flex justify-between text-sm">
-                <span>{item.name} x {item.quantity}</span>
-                <span>R$ {(item.price * item.quantity).toFixed(2)}</span>
+                <span>{item.name} x {item.quantidade}</span>
+                <span>R$ {(item.price * item.quantidade).toFixed(2)}</span>
               </div>
             ))}
             <div className="border-t pt-2 mt-2">
@@ -48,34 +96,34 @@ export default function Checkout({ cart, onComplete }) {
 
         <form onSubmit={handleSubmit}>
           <div className="mb-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Payment Method</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Método de Pagamento</h3>
             <div className="space-x-4">
               <label className="inline-flex items-center">
                 <input
                   type="radio"
                   value="credit"
-                  checked={paymentMethod === 'credit'}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  checked={metodoPagamento === 'credit'}
+                  onChange={(e) => setMetodoPagamento(e.target.value)}
                   className="form-radio"
                 />
-                <span className="ml-2">Credit Card</span>
+                <span className="ml-2">Cartão de Crédito</span>
               </label>
               <label className="inline-flex items-center">
                 <input
                   type="radio"
                   value="debit"
-                  checked={paymentMethod === 'debit'}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  checked={metodoPagamento === 'debit'}
+                  onChange={(e) => setMetodoPagamento(e.target.value)}
                   className="form-radio"
                 />
-                <span className="ml-2">Debit Card</span>
+                <span className="ml-2">Cartão de Débito</span>
               </label>
               <label className="inline-flex items-center">
                 <input
                   type="radio"
                   value="pix"
-                  checked={paymentMethod === 'pix'}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  checked={metodoPagamento === 'pix'}
+                  onChange={(e) => setMetodoPagamento(e.target.value)}
                   className="form-radio"
                 />
                 <span className="ml-2">PIX</span>
@@ -83,62 +131,69 @@ export default function Checkout({ cart, onComplete }) {
             </div>
           </div>
 
-          {(paymentMethod === 'credit' || paymentMethod === 'debit') && (
+          {(metodoPagamento === 'credit' || metodoPagamento === 'debit') && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Card Number</label>
+                <label className="block text-sm font-medium text-gray-700">Número do Cartão</label>
                 <input
                   type="text"
-                  value={formData.cardNumber}
-                  onChange={(e) => setFormData({ ...formData, cardNumber: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  value={dadosFormulario.numeroCartao}
+                  onChange={(e) => setDadosFormulario({ ...dadosFormulario, numeroCartao: e.target.value })}
+                  className="input"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Name on Card</label>
+                <label className="block text-sm font-medium text-gray-700">Nome no Cartão</label>
                 <input
                   type="text"
-                  value={formData.cardName}
-                  onChange={(e) => setFormData({ ...formData, cardName: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  value={dadosFormulario.nomeCartao}
+                  onChange={(e) => setDadosFormulario({ ...dadosFormulario, nomeCartao: e.target.value })}
+                  className="input"
                   required
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Expiry Date</label>
+                  <label className="block text-sm font-medium text-gray-700">Data de Validade</label>
                   <input
                     type="text"
-                    placeholder="MM/YY"
-                    value={formData.expiryDate}
-                    onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    placeholder="MM/AA"
+                    value={dadosFormulario.dataValidade}
+                    onChange={handleDataValidadeChange}
+                    className={`input ${erros.dataValidade ? 'border-red-500 focus:ring-red-500' : ''}`}
                     required
                   />
+                  {erros.dataValidade && (
+                    <p className="mt-1 text-sm text-red-600">{erros.dataValidade}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">CVV</label>
                   <input
                     type="text"
-                    value={formData.cvv}
-                    onChange={(e) => setFormData({ ...formData, cvv: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    value={dadosFormulario.cvv}
+                    onChange={handleCvvChange}
+                    className={`input ${erros.cvv ? 'border-red-500 focus:ring-red-500' : ''}`}
+                    maxLength="3"
                     required
                   />
+                  {erros.cvv && (
+                    <p className="mt-1 text-sm text-red-600">{erros.cvv}</p>
+                  )}
                 </div>
               </div>
             </div>
           )}
 
-          {paymentMethod === 'pix' && (
+          {metodoPagamento === 'pix' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700">PIX Key</label>
+              <label className="block text-sm font-medium text-gray-700">Chave PIX</label>
               <input
                 type="text"
-                value={formData.pixKey}
-                onChange={(e) => setFormData({ ...formData, pixKey: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                value={dadosFormulario.chavePix}
+                onChange={(e) => setDadosFormulario({ ...dadosFormulario, chavePix: e.target.value })}
+                className="input"
                 required
               />
             </div>
@@ -147,16 +202,16 @@ export default function Checkout({ cart, onComplete }) {
           <div className="mt-8 flex justify-end space-x-4">
             <button
               type="button"
-              onClick={() => navigate('/cart')}
+              onClick={() => navegacao('/cart')}
               className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
             >
-              Back to Cart
+              Voltar ao Carrinho
             </button>
             <button
               type="submit"
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
-              Complete Purchase
+              Finalizar Compra
             </button>
           </div>
         </form>

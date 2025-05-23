@@ -1,48 +1,142 @@
-import { format } from 'date-fns'
+import { useState } from 'react'
+import { format, startOfDay, startOfWeek, startOfMonth, startOfYear, isWithinInterval } from 'date-fns'
 
-export default function SalesHistory({ sales }) {
+export default function SalesHistory({ sales, isAdmin }) {
+  const [periodoFiltro, setPeriodoFiltro] = useState('all')
+  const [dataInicioPersonalizada, setDataInicioPersonalizada] = useState('')
+  const [dataFimPersonalizada, setDataFimPersonalizada] = useState('')
+
+  const getVendasFiltradas = () => {
+    const agora = new Date()
+    let dataInicio
+
+    switch (periodoFiltro) {
+      case 'day':
+        dataInicio = startOfDay(agora)
+        break
+      case 'week':
+        dataInicio = startOfWeek(agora)
+        break
+      case 'month':
+        dataInicio = startOfMonth(agora)
+        break
+      case 'year':
+        dataInicio = startOfYear(agora)
+        break
+      case 'custom':
+        if (dataInicioPersonalizada && dataFimPersonalizada) {
+          return sales.filter(venda => {
+            const dataVenda = new Date(venda.data)
+            return isWithinInterval(dataVenda, {
+              start: new Date(dataInicioPersonalizada),
+              end: new Date(dataFimPersonalizada)
+            })
+          })
+        }
+        return sales
+      default:
+        return sales
+    }
+
+    if (periodoFiltro !== 'all') {
+      return sales.filter(venda => {
+        const dataVenda = new Date(venda.data)
+        return dataVenda >= dataInicio
+      })
+    }
+
+    return sales
+  }
+
+  const vendasFiltradas = getVendasFiltradas()
+  const totalVendido = vendasFiltradas.reduce((total, venda) => total + venda.total, 0)
+
   if (sales.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">No sales history available.</p>
+        <p className="text-gray-500">Nenhum histórico de vendas disponível.</p>
       </div>
     )
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Sales History</h2>
-      <div className="space-y-6">
-        {sales.map((sale) => (
-          <div key={sale.id} className="border rounded-lg p-4">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <p className="text-sm text-gray-500">
-                  Order #{sale.id}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {format(new Date(sale.date), 'PPpp')}
-                </p>
+    <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Histórico de Vendas</h2>
+          <div className="flex items-center space-x-4">
+            <select
+              value={periodoFiltro}
+              onChange={(e) => setPeriodoFiltro(e.target.value)}
+              className="input"
+            >
+              <option value="all">Todo o Período</option>
+              <option value="day">Hoje</option>
+              <option value="week">Esta Semana</option>
+              <option value="month">Este Mês</option>
+              <option value="year">Este Ano</option>
+              <option value="custom">Período Personalizado</option>
+            </select>
+            
+            {periodoFiltro === 'custom' && (
+              <div className="flex space-x-2">
+                <input
+                  type="date"
+                  value={dataInicioPersonalizada}
+                  onChange={(e) => setDataInicioPersonalizada(e.target.value)}
+                  className="input"
+                />
+                <input
+                  type="date"
+                  value={dataFimPersonalizada}
+                  onChange={(e) => setDataFimPersonalizada(e.target.value)}
+                  className="input"
+                />
               </div>
-              <div className="text-right">
-                <p className="text-lg font-bold text-gray-900">
-                  Total: R$ {sale.total.toFixed(2)}
-                </p>
-                <p className="text-sm text-gray-500 capitalize">
-                  Paid with {sale.payment.method}
-                </p>
-              </div>
-            </div>
-            <div className="space-y-2">
-              {sale.items.map((item) => (
-                <div key={item.id} className="flex justify-between text-sm">
-                  <span>{item.name} x {item.quantity}</span>
-                  <span>R$ {(item.price * item.quantity).toFixed(2)}</span>
-                </div>
-              ))}
-            </div>
+            )}
           </div>
-        ))}
+        </div>
+
+        {isAdmin && (
+          <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg p-6 mb-6">
+            <p className="text-lg font-semibold">Total de Vendas</p>
+            <p className="text-3xl font-bold">R$ {totalVendido.toFixed(2)}</p>
+          </div>
+        )}
+
+        <div className="space-y-6">
+          {vendasFiltradas.map((venda) => (
+            <div key={venda.id} className="border rounded-lg p-4">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <p className="text-sm text-gray-500">
+                    Pedido #{venda.id}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {format(new Date(venda.data), 'PPpp')}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-bold text-gray-900">
+                    Total: R$ {venda.total.toFixed(2)}
+                  </p>
+                  <p className="text-sm text-gray-500 capitalize">
+                    Pago com {venda.pagamento.method === 'credit' ? 'Cartão de Crédito' : 
+                             venda.pagamento.method === 'debit' ? 'Cartão de Débito' : 'PIX'}
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {venda.itens.map((item) => (
+                  <div key={item.id} className="flex justify-between text-sm">
+                    <span>{item.name} x {item.quantidade}</span>
+                    <span>R$ {(item.price * item.quantidade).toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

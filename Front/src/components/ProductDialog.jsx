@@ -2,57 +2,81 @@ import { Fragment, useEffect, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 
 export default function ProductDialog({ isOpen, onClose, onSubmit, product }) {
-  const [formData, setFormData] = useState({
+  const [dadosFormulario, setDadosFormulario] = useState({
     name: '',
     description: '',
     price: '',
+    amount: '',
+    id: '',
     image: null,
     imagePreview: ''
   })
+  const [erro, setErro] = useState('')
 
   useEffect(() => {
     if (product) {
-      setFormData({
+      setDadosFormulario({
         ...product,
         image: null,
         imagePreview: product.imageUrl
       })
+      setErro('')
     } else {
-      setFormData({
-        name: '',
-        description: '',
-        price: '',
-        image: null,
-        imagePreview: ''
-      })
+      resetarFormulario()
     }
   }, [product])
 
+  const resetarFormulario = () => {
+    setDadosFormulario({
+      name: '',
+      description: '',
+      price: '',
+      amount: '',
+      id: '',
+      image: null,
+      imagePreview: ''
+    })
+    setErro('')
+  }
+
   const handleImageChange = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      setFormData({
-        ...formData,
-        image: file,
-        imagePreview: URL.createObjectURL(file)
+    const arquivo = e.target.files[0]
+    if (arquivo) {
+      setDadosFormulario({
+        ...dadosFormulario,
+        image: arquivo,
+        imagePreview: URL.createObjectURL(arquivo)
       })
     }
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    const imageUrl = formData.image 
-      ? URL.createObjectURL(formData.image)
-      : formData.imagePreview
+    
+    // Check if product with same ID already exists
+    const produtoExistente = window.produtos?.find(p => p.id === dadosFormulario.id)
+    if (produtoExistente && !product) {
+      setErro('Já existe um produto com este ID')
+      return
+    }
+
+    const imageUrl = dadosFormulario.image 
+      ? URL.createObjectURL(dadosFormulario.image)
+      : dadosFormulario.imagePreview
     
     onSubmit({
-      ...formData,
-      imageUrl
+      ...dadosFormulario,
+      imageUrl,
+      amount: parseInt(dadosFormulario.amount),
+      price: parseFloat(dadosFormulario.price)
     })
+
+    // Reset form after successful submission
+    resetarFormulario()
   }
 
   return (
-    <Transition appear show={isOpen} as={Fragment}>
+    <Transition appear show={isOpen}as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={onClose}>
         <Transition.Child
           as={Fragment}
@@ -82,13 +106,32 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product }) {
                   as="h3"
                   className="text-lg font-medium leading-6 text-gray-900 mb-4"
                 >
-                  {product ? 'Edit Product' : 'Add New Product'}
+                  {product ? 'Editar Produto' : 'Adicionar Novo Produto'}
                 </Dialog.Title>
                 <form onSubmit={handleSubmit}>
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
-                        Image
+                        ID do Produto
+                      </label>
+                      <input
+                        type="text"
+                        value={dadosFormulario.id}
+                        onChange={(e) => {
+                          setDadosFormulario({ ...dadosFormulario, id: e.target.value })
+                          setErro('')
+                        }}
+                        className={`input ${erro ? 'border-red-500 focus:ring-red-500' : ''}`}
+                        required
+                        disabled={!!product}
+                      />
+                      {erro && (
+                        <p className="mt-1 text-sm text-red-600">{erro}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Imagem
                       </label>
                       <input
                         type="file"
@@ -98,51 +141,63 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product }) {
                           file:mr-4 file:py-2 file:px-4
                           file:rounded-md file:border-0
                           file:text-sm file:font-semibold
-                          file:bg-blue-50 file:text-blue-700
-                          hover:file:bg-blue-100"
+                          file:bg-pink-50 file:text-pink-700
+                          hover:file:bg-pink-100"
                       />
-                      {formData.imagePreview && (
+                      {dadosFormulario.imagePreview && (
                         <img
-                          src={formData.imagePreview}
-                          alt="Preview"
+                          src={dadosFormulario.imagePreview}
+                          alt="Prévia"
                           className="mt-2 h-32 w-full object-cover rounded-md"
                         />
                       )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
-                        Name
+                        Nome
                       </label>
                       <input
                         type="text"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        value={dadosFormulario.name}
+                        onChange={(e) => setDadosFormulario({ ...dadosFormulario, name: e.target.value })}
+                        className="input"
                         required
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
-                        Description
+                        Descrição
                       </label>
                       <textarea
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        value={dadosFormulario.description}
+                        onChange={(e) => setDadosFormulario({ ...dadosFormulario, description: e.target.value })}
                         rows={3}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        className="input"
                         required
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
-                        Price (R$)
+                        Preço (R$)
                       </label>
                       <input
                         type="number"
                         step="0.01"
-                        value={formData.price}
-                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        value={dadosFormulario.price}
+                        onChange={(e) => setDadosFormulario({ ...dadosFormulario, price: e.target.value })}
+                        className="input"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Quantidade em Estoque
+                      </label>
+                      <input
+                        type="number"
+                        value={dadosFormulario.amount}
+                        onChange={(e) => setDadosFormulario({ ...dadosFormulario, amount: e.target.value })}
+                        className="input"
                         required
                       />
                     </div>
@@ -150,16 +205,19 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product }) {
                   <div className="mt-6 flex justify-end space-x-3">
                     <button
                       type="button"
-                      onClick={onClose}
-                      className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      onClick={() => {
+                        onClose()
+                        resetarFormulario()
+                      }}
+                      className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
                     >
-                      Cancel
+                      Cancelar
                     </button>
                     <button
                       type="submit"
-                      className="rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      className="btn-primary"
                     >
-                      {product ? 'Save Changes' : 'Add Product'}
+                      {product ? 'Salvar Alterações' : 'Adicionar Produto'}
                     </button>
                   </div>
                 </form>
