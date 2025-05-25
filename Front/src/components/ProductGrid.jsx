@@ -69,11 +69,11 @@ export default function ProductGrid({ products, onEdit, onDelete, onAddToCart, i
                 )}
                 <button
                   onClick={() => onAddToCart(produto)}
-                  className="flex items-center space-x-1 bg-gradient-to-r from-pink-500 to-purple-600 text-white px-3 py-1 rounded-md hover:from-pink-600 hover:to-purple-700"
+                  className="flex items-center space-x-1 bg-gradient-to-r from-pink-500 to-purple-600 text-white px-0.3 py-0.6 rounded-md hover:from-pink-600 hover:to-purple-700"
                   disabled={produto.estoque === 0}
                 >
                   <ShoppingCartIcon className="h-5 w-5" />
-                  <span>Adicionar ao Carrinho</span>
+                  <span>Add no Carrinho</span>
                 </button>
               </div>
             </div>

@@ -17,12 +17,14 @@ export default function Login({ onLogin }) {
     try {
       if (isLogin) {
         const { token } = await authService.login(usuario, senha)
+        localStorage.setItem('token', token)
         const decoded = jwtDecode(token)
         const isAdmin = decoded?.role === 'Admin'
         onLogin(isAdmin)
       } else {
         await authService.register(usuario, email, senha)
         const { token } = await authService.login(usuario, senha)
+        localStorage.setItem('token', token)
         const decoded = jwtDecode(token)
         const isAdmin = decoded?.role === 'Admin'
         onLogin(isAdmin)
@@ -74,7 +76,7 @@ export default function Login({ onLogin }) {
           {!isLogin && (<div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
               Email
-              </label>
+              </label>  
               <input
                 id="email"
                 name="email"
@@ -115,22 +117,6 @@ export default function Login({ onLogin }) {
               />
             </div>
           </div>
-
-          {/* {isLogin && (
-            <div className="flex items-center">
-              <input
-                id="admin-toggle"
-                name="admin-toggle"
-                type="checkbox"
-                className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 rounded"
-                checked={isAdmin}
-                onChange={(e) => setIsAdmin(e.target.checked)}
-              />
-              <label htmlFor="admin-toggle" className="ml-2 block text-sm text-gray-700">
-                Login como Admin
-              </label>
-            </div>
-          )} */}
 
           <button
             type="submit"

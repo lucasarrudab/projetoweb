@@ -4,7 +4,6 @@ import { Dialog, Transition } from '@headlessui/react'
 export default function ProductDialog({ isOpen, onClose, onSubmit, product }) {
   const [dadosFormulario, setDadosFormulario] = useState({
     name: '',
-    description: '',
     price: '',
     amount: '',
     id: '',
@@ -29,7 +28,6 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product }) {
   const resetarFormulario = () => {
     setDadosFormulario({
       name: '',
-      description: '',
       price: '',
       amount: '',
       id: '',
@@ -160,18 +158,6 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product }) {
                         type="text"
                         value={dadosFormulario.name}
                         onChange={(e) => setDadosFormulario({ ...dadosFormulario, name: e.target.value })}
-                        className="input"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Descrição
-                      </label>
-                      <textarea
-                        value={dadosFormulario.description}
-                        onChange={(e) => setDadosFormulario({ ...dadosFormulario, description: e.target.value })}
-                        rows={3}
                         className="input"
                         required
                       />

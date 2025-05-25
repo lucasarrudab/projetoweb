@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
+import { jwtDecode } from 'jwt-decode' 
 import { authService } from './services/authService'
+import { produtoService } from './services/produtoService'
+import { salvarCarrinho, carregarCarrinho, salvarVendas, carregarVendas } from './services/localStorage'
 import { ShoppingCartIcon, ClipboardDocumentListIcon, BellIcon } from '@heroicons/react/24/outline'
 import ProductDialog from './components/ProductDialog'
 import ProductGrid from './components/ProductGrid'
-import { produtoService } from './services/produtoService'
 import Cart from './components/Cart'
 import Login from './components/Login'
 import SalesHistory from './components/SalesHistory'
@@ -14,27 +16,56 @@ function App() {
   const [estaAberto, setEstaAberto] = useState(false)
   const [produtos, setProdutos] = useState([])
   const [produtoEditando, setProdutoEditando] = useState(null)
-  const [carrinho, setCarrinho] = useState([])
+  const [carrinho, setCarrinho] = useState(() => carregarCarrinho())
   const [estaAutenticado, setEstaAutenticado] = useState(false)
   const [ehAdmin, setEhAdmin] = useState(false)
-  const [vendas, setVendas] = useState([])
+  const [vendas, setVendas] = useState(() => carregarVendas())
 
-useEffect(() => {
-  const carregarProdutos = async () => {
-    try {
-      const produtosAPI = await produtoService.getAll()
-      const newProduto = produtosAPI.map(p => ({
-        ...p,
-        imageUrl: p.imageUrl || '/default.png'
-      }))
-      setProdutos(newProduto)
-    } catch (error) {
-      console.error('Erro ao carregar produtos:', error)
+  useEffect(() => {
+    const carregarProdutos = async () => {
+      try {
+        const produtosAPI = await produtoService.getAll()
+        const newProduto = produtosAPI.map(p => ({
+          ...p,
+          imageUrl: p.imageUrl || '/default.png'
+        }))
+        setProdutos(newProduto)
+      } catch (error) {
+        console.error('Erro ao carregar produtos:', error)
+      }
     }
-  }
 
-  carregarProdutos()
-}, [])
+    const restaurarSessao = () => {
+      const token = localStorage.getItem('token')
+      if (token) {
+        try {
+          const decoded = jwtDecode(token)
+          const isExpired = decoded.exp * 1000 < Date.now()
+          if (!isExpired) {
+            const isAdmin = decoded?.role?.toLowerCase() === 'admin'
+            setEhAdmin(isAdmin)
+            setEstaAutenticado(true)
+          } else {
+            localStorage.removeItem('token')
+          }
+        } catch (err) {
+          console.error('Token inválido:', err)
+          localStorage.removeItem('token')
+        }
+      }
+    }
+
+    restaurarSessao()
+    carregarProdutos()
+  }, [])
+
+  useEffect(() => {
+    salvarCarrinho(carrinho)
+  }, [carrinho])
+
+  useEffect(() => {
+    salvarVendas(vendas)
+  }, [vendas])
 
   const handleAddProduct = (produto) => {
     if (produtoEditando) {
@@ -59,8 +90,8 @@ useEffect(() => {
     const itemExistente = carrinho.find(item => item.id === produto.id)
     if (itemExistente) {
       if (itemExistente.quantidade >= produto.amount) return
-      setCarrinho(carrinho.map(item => 
-        item.id === produto.id 
+      setCarrinho(carrinho.map(item =>
+        item.id === produto.id
           ? { ...item, quantidade: item.quantidade + 1 }
           : item
       ))
@@ -70,7 +101,7 @@ useEffect(() => {
   }
 
   const handleCheckoutComplete = (detalhePagamento) => {
-    // Update product stock
+    // Atualiza estoque
     const produtosAtualizados = produtos.map(produto => {
       const itemCarrinho = carrinho.find(item => item.id === produto.id)
       if (itemCarrinho) {
@@ -81,10 +112,10 @@ useEffect(() => {
       }
       return produto
     })
-    
+
     setProdutos(produtosAtualizados)
 
-    // Create sale record
+    // Cria registro da venda
     const venda = {
       id: Date.now(),
       data: new Date(),
@@ -96,26 +127,30 @@ useEffect(() => {
     setCarrinho([])
   }
 
-const handleLogout = async () => {
-  try {
-    await authService.logout() 
-  } catch (error) {
-    console.error('Erro ao deslogar:', error)
-  } finally {
-    setEstaAutenticado(false)
-    setEhAdmin(false)
-    setCarrinho([])
+  const handleLogout = async () => {
+    try {
+      await authService.logout()
+    } catch (error) {
+      console.error('Erro ao deslogar:', error)
+    } finally {
+      setEstaAutenticado(false)
+      setEhAdmin(false)
+      setCarrinho([])
+      setVendas([])
+      localStorage.removeItem('token')
+      localStorage.removeItem('carrinho')
+      localStorage.removeItem('vendas')
+    }
   }
-}
 
   const produtosBaixoEstoque = produtos.filter(p => p.amount <= 15)
 
-if (!estaAutenticado) {
-  return <Login onLogin={(ehAdmin) => {
-    setEstaAutenticado(true)
-    setEhAdmin(ehAdmin)
-  }} />
-}
+  if (!estaAutenticado) {
+    return <Login onLogin={(ehAdmin) => {
+      setEstaAutenticado(true)
+      setEhAdmin(ehAdmin)
+    }} />
+  }
 
   return (
     <Router>
@@ -184,26 +219,26 @@ if (!estaAutenticado) {
 
         <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
           <Routes>
-            <Route 
-              path="/" 
+            <Route
+              path="/"
               element={
-                <ProductGrid 
+                <ProductGrid
                   products={produtos}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                   onAddToCart={handleAddToCart}
                   isAdmin={ehAdmin}
                 />
-              } 
+              }
             />
-            <Route 
-              path="/cart" 
+            <Route
+              path="/cart"
               element={
-                <Cart 
-                  cart={carrinho} 
+                <Cart
+                  cart={carrinho}
                   setCart={setCarrinho}
                 />
-              } 
+              }
             />
             <Route
               path="/checkout"
