@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom'
+import { authService } from './services/authService'
 import { ShoppingCartIcon, ClipboardDocumentListIcon, BellIcon } from '@heroicons/react/24/outline'
 import ProductDialog from './components/ProductDialog'
 import ProductGrid from './components/ProductGrid'
+import { produtoService } from './services/produtoService'
 import Cart from './components/Cart'
 import Login from './components/Login'
 import SalesHistory from './components/SalesHistory'
@@ -17,8 +19,22 @@ function App() {
   const [ehAdmin, setEhAdmin] = useState(false)
   const [vendas, setVendas] = useState([])
 
-  // Make products available globally for ID validation
-  window.produtos = produtos
+useEffect(() => {
+  const carregarProdutos = async () => {
+    try {
+      const produtosAPI = await produtoService.getAll()
+      const newProduto = produtosAPI.map(p => ({
+        ...p,
+        imageUrl: p.imageUrl || '/default.png'
+      }))
+      setProdutos(newProduto)
+    } catch (error) {
+      console.error('Erro ao carregar produtos:', error)
+    }
+  }
+
+  carregarProdutos()
+}, [])
 
   const handleAddProduct = (produto) => {
     if (produtoEditando) {
@@ -80,20 +96,26 @@ function App() {
     setCarrinho([])
   }
 
-  const handleLogout = () => {
+const handleLogout = async () => {
+  try {
+    await authService.logout() 
+  } catch (error) {
+    console.error('Erro ao deslogar:', error)
+  } finally {
     setEstaAutenticado(false)
     setEhAdmin(false)
     setCarrinho([])
   }
+}
 
   const produtosBaixoEstoque = produtos.filter(p => p.amount <= 15)
 
-  if (!estaAutenticado) {
-    return <Login onLogin={(ehAdmin) => {
-      setEstaAutenticado(true)
-      setEhAdmin(ehAdmin)
-    }} />
-  }
+if (!estaAutenticado) {
+  return <Login onLogin={(ehAdmin) => {
+    setEstaAutenticado(true)
+    setEhAdmin(ehAdmin)
+  }} />
+}
 
   return (
     <Router>
