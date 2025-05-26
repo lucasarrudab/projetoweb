@@ -1,13 +1,14 @@
 import { rawApi } from './api';
+import { api } from './api';
 
 export const produtoService = {
   getAll: async () => {
-    const response = await rawApi.get('/produto');
+    const response = await rawApi.get('/Produto');
     return response.data;
   },
 
   getAllPaginated: async (pageNumber = 1, pageSize = 10) => {
-    const response = await api.get('/produto/pagination', {
+    const response = await rawApi.get('/Produto/pagination', {
       params: { pageNumber, pageSize },
     });
     return {
@@ -17,7 +18,7 @@ export const produtoService = {
   },
 
   getFilteredByNome: async (nome, pageNumber = 1, pageSize = 10) => {
-    const response = await api.get('/produto/filter/pagination/nome', {
+    const response = await rawApi.get('/Produto/filter/pagination/nome', {
       params: { nome, pageNumber, pageSize },
     });
     return {
@@ -27,7 +28,7 @@ export const produtoService = {
   },
 
   getFilteredByPreco: async (minPreco, maxPreco, pageNumber = 1, pageSize = 10) => {
-    const response = await api.get('/produto/filter/pagination/preco', {
+    const response = await rawApi.get('/Produto/filter/pagination/preco', {
       params: { precoMin: minPreco, precoMax: maxPreco, pageNumber, pageSize },
     });
     return {
@@ -37,22 +38,22 @@ export const produtoService = {
   },
 
   getById: async (id) => {
-    const response = await api.get(`/produto/${id}`);
+    const response = await rawApi.get(`/Produto/${id}`);
     return response.data;
   },
 
   create: async (produtoData) => {
-    const response = await api.post('/produto', produtoData);
+    const response = await rawApi.post('/Produto', produtoData);
     return response.data;
   },
 
   update: async (id, produtoData) => {
-    const response = await api.put(`/produto/${id}`, produtoData);
+    const response = await rawApi.put(`/Produto/${id}`, produtoData);
     return response.data;
   },
 
   addEstoque: async (id, quantidade) => {
-    const response = await api.put(`/produto/estoque/${id}`, quantidade, {
+    const response = await rawApi.put(`/Produto/estoque/${id}`, quantidade, {
       headers: {
         'Content-Type': 'application/json',
       },
@@ -61,7 +62,7 @@ export const produtoService = {
   },
 
   delete: async (id) => {
-    const response = await api.delete(`/produto/${id}`);
+    const response = await rawApi.delete(`/Produto/${id}`);
     return response.data;
   },
 };

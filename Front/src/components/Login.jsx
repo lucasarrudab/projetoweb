@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { authService } from '../services/authService'
 import { jwtDecode } from 'jwt-decode'
+import { salvarLogin } from '../services/localStorage'
 
 export default function Login({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true)
@@ -16,7 +17,8 @@ export default function Login({ onLogin }) {
 
     try {
       if (isLogin) {
-        const { token } = await authService.login(usuario, senha)
+        const { token, refreshToken, expiration } = await authService.login(usuario, senha)
+        salvarLogin({ token, refreshToken, expiration })
         localStorage.setItem('token', token)
         const decoded = jwtDecode(token)
         const isAdmin = decoded?.role === 'Admin'

@@ -67,14 +67,29 @@ function App() {
     salvarVendas(vendas)
   }, [vendas])
 
-  const handleAddProduct = (produto) => {
-    if (produtoEditando) {
-      setProdutos(produtos.map(p => p.id === produtoEditando.id ? produto : p))
-    } else {
+  const handleCreateProduct = async (produto) => {
+    try {
       setProdutos([...produtos, produto])
+      setEstaAberto(false)
+    } catch (error) {
+      console.error('Erro ao adicionar produto:', error)
+      alert('Falha ao adicionar o produto.')
     }
-    setEstaAberto(false)
-    setProdutoEditando(null)
+  }
+
+  const handleEditProduct = async (updatedProduto) => {
+    console.log(updatedProduto.id)
+    try {
+      const updated = await produtoService.update(updatedProduto.id, updatedProduto)
+      setProdutos((prevProdutos) =>
+        prevProdutos.map((p) => (p.id === updated.id ? updated : p))
+      )
+      setProdutoEditando(null)
+      setEstaAberto(false)
+    } catch (error) {
+      console.error('Erro ao atualizar produto:', error)
+      alert('Falha ao atualizar o produto.')
+    }
   }
 
   const handleEdit = (produto) => {
@@ -140,6 +155,8 @@ function App() {
       localStorage.removeItem('token')
       localStorage.removeItem('carrinho')
       localStorage.removeItem('vendas')
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('tokenExpiration');
     }
   }
 
@@ -264,8 +281,9 @@ function App() {
                 setEstaAberto(false)
                 setProdutoEditando(null)
               }}
-              onSubmit={handleAddProduct}
+              onSubmit={produtoEditando ? handleEditProduct : handleCreateProduct}
               product={produtoEditando}
+              produtos={produtos}
             />
           )}
         </div>

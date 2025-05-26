@@ -33,3 +33,30 @@ export const carregarVendas = () => {
     return []
   }
 }
+
+export const salvarLogin = ({ token, refreshToken, expiration }) => {
+  try {
+    const dadosLogin = { token, refreshToken, expiration }
+    localStorage.setItem('login', JSON.stringify(dadosLogin))
+  } catch (error) {
+    console.error('Erro ao salvar login no localStorage:', error)
+  }
+}
+
+export const carregarLogin = () => {
+  try {
+    const loginJSON = localStorage.getItem('login')
+    return loginJSON ? JSON.parse(loginJSON) : null
+  } catch (error) {
+    console.error('Erro ao carregar login do localStorage:', error)
+    return null
+  }
+}
+
+export const limparLogin = () => {
+  try {
+    localStorage.removeItem('login')
+  } catch (error) {
+    console.error('Erro ao limpar login do localStorage:', error)
+  }
+}
