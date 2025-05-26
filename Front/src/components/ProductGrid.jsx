@@ -85,7 +85,7 @@ export default function ProductGrid({ products, onEdit, onDelete, onAddToCart, i
         isOpen={!!produtoParaExcluir}
         onClose={() => setProdutoParaExcluir(null)}
         onConfirm={handleDeleteConfirm}
-        productName={produtoParaExcluir?.name}
+        productName={produtoParaExcluir?.nome}
       />
     </>
   )

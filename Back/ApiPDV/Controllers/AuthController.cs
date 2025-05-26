@@ -143,7 +143,7 @@ public class AuthController : ControllerBase
         var user = await _userManager.FindByNameAsync(username!);
 
         if (user == null || user.RefreshToken != refreshToken
-                         || user.RefreshTokenExpiryTime <= DateTime.Now)
+                         || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
         {
             return BadRequest("Invalid access token/refresh token");
         }

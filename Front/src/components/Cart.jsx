@@ -1,10 +1,34 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { TrashIcon } from '@heroicons/react/24/outline'
+import { carrinhoService } from '../services/carrinhoService'
 
 export default function Cart({ cart, setCart }) {
   const navegacao = useNavigate()
-  
+  const [carregando, setCarregando] = useState(true)
+
+  useEffect(() => {
+    const carregarCarrinho = async () => {
+      const carrinhoId = localStorage.getItem('carrinhoId') // ou do contexto
+
+      if (!carrinhoId) {
+        setCarregando(false)
+        return
+      }
+
+      try {
+        const carrinho = await carrinhoService.buscarCarrinhoPorId(carrinhoId)
+        setCart(carrinho.produtos || []) // certifique-se de que backend retorna { produtos: [...] }
+      } catch (err) {
+        console.error('Erro ao buscar carrinho:', err)
+      } finally {
+        setCarregando(false)
+      }
+    }
+
+    carregarCarrinho()
+  }, [])
+
   const handleQuantityChange = (produtoId, novaQuantidade) => {
     if (novaQuantidade < 1) {
       setCart(cart.filter(item => item.id !== produtoId))
@@ -19,7 +43,19 @@ export default function Cart({ cart, setCart }) {
     setCart(cart.filter(item => item.id !== produtoId))
   }
 
-  const subtotal = cart.reduce((total, item) => total + (item.price * item.quantidade), 0)
+  const subtotal = cart.reduce((total, item) => {
+    const preco = Number(item.preco)
+    const quantidade = Number(item.quantidade)
+    return total + (isNaN(preco) || isNaN(quantidade) ? 0 : preco * quantidade)
+  }, 0)
+
+  if (carregando) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500">Carregando carrinho...</p>
+      </div>
+    )
+  }
 
   if (cart.length === 0) {
     return (
@@ -43,13 +79,14 @@ export default function Cart({ cart, setCart }) {
           <div key={item.id} className="flex items-center space-x-4 py-4 border-b">
             <img
               src={item.imageUrl}
-              alt={item.name}
+              alt={item.nome}
               className="w-20 h-20 object-cover rounded"
             />
             <div className="flex-1">
-              <h3 className="text-lg font-medium text-gray-900">{item.name}</h3>
-              <p className="text-gray-500">{item.description}</p>
-              <p className="text-lg font-bold text-gray-900">R$ {Number(item.price).toFixed(2)}</p>
+              <h3 className="text-lg font-medium text-gray-900">{item.nome}</h3>
+              <p className="text-lg font-bold text-gray-900">
+                R$ {Number(item.preco).toFixed(2)}
+              </p>
             </div>
             <div className="flex items-center space-x-2">
               <button

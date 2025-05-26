@@ -1,10 +1,28 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { format, startOfDay, startOfWeek, startOfMonth, startOfYear, isWithinInterval } from 'date-fns'
+import { vendasService } from '../services/vendasService'; 
 
-export default function SalesHistory({ sales, isAdmin }) {
+export default function SalesHistory({ isAdmin }) {
+  const [sales, setSales] = useState([])
+  const [loading, setLoading] = useState(true)
   const [periodoFiltro, setPeriodoFiltro] = useState('all')
   const [dataInicioPersonalizada, setDataInicioPersonalizada] = useState('')
   const [dataFimPersonalizada, setDataFimPersonalizada] = useState('')
+
+  useEffect(() => {
+    async function fetchSales() {
+      try {
+        const dados = await vendasService.getAllVendas() 
+        setSales(dados)
+      } catch (erro) {
+        console.error('Erro ao buscar vendas:', erro)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchSales()
+  }, [])
 
   const getVendasFiltradas = () => {
     const agora = new Date()
@@ -38,18 +56,15 @@ export default function SalesHistory({ sales, isAdmin }) {
         return sales
     }
 
-    if (periodoFiltro !== 'all') {
-      return sales.filter(venda => {
-        const dataVenda = new Date(venda.data)
-        return dataVenda >= dataInicio
-      })
-    }
-
-    return sales
+    return sales.filter(venda => new Date(venda.data) >= dataInicio)
   }
 
   const vendasFiltradas = getVendasFiltradas()
   const totalVendido = vendasFiltradas.reduce((total, venda) => total + venda.total, 0)
+
+  if (loading) {
+    return <p className="text-center py-12 text-gray-500">Carregando vendas...</p>
+  }
 
   if (sales.length === 0) {
     return (
@@ -129,8 +144,8 @@ export default function SalesHistory({ sales, isAdmin }) {
               <div className="space-y-2">
                 {venda.itens.map((item) => (
                   <div key={item.id} className="flex justify-between text-sm">
-                    <span>{item.name} x {item.quantidade}</span>
-                    <span>R$ {(item.price * item.quantidade).toFixed(2)}</span>
+                    <span>{item.nome} x {item.quantidade}</span>
+                    <span>R$ {(item.preco * item.quantidade).toFixed(2)}</span>
                   </div>
                 ))}
               </div>

@@ -5,6 +5,7 @@ import { authService } from './services/authService'
 import { produtoService } from './services/produtoService'
 import { salvarCarrinho, carregarCarrinho, salvarVendas, carregarVendas } from './services/localStorage'
 import { ShoppingCartIcon, ClipboardDocumentListIcon, BellIcon } from '@heroicons/react/24/outline'
+import { carrinhoService } from './services/carrinhoService'
 import ProductDialog from './components/ProductDialog'
 import ProductGrid from './components/ProductGrid'
 import Cart from './components/Cart'
@@ -20,6 +21,7 @@ function App() {
   const [estaAutenticado, setEstaAutenticado] = useState(false)
   const [ehAdmin, setEhAdmin] = useState(false)
   const [vendas, setVendas] = useState(() => carregarVendas())
+  const [carrinhoCriado, setCarrinhoCriado] = useState(false)
 
   useEffect(() => {
     const carregarProdutos = async () => {
@@ -29,6 +31,7 @@ function App() {
           ...p,
           imageUrl: p.imageUrl || '/default.png'
         }))
+        .sort((a, b) => a.nome.localeCompare(b.nome))
         setProdutos(newProduto)
       } catch (error) {
         console.error('Erro ao carregar produtos:', error)
@@ -69,13 +72,14 @@ function App() {
 
   const handleCreateProduct = async (produto) => {
     try {
-      setProdutos([...produtos, produto])
-      setEstaAberto(false)
+      const novoProduto = await produtoService.create(produto); 
+      setProdutos([...produtos, novoProduto]); 
+      setEstaAberto(false); 
     } catch (error) {
-      console.error('Erro ao adicionar produto:', error)
-      alert('Falha ao adicionar o produto.')
+      console.error('Erro ao adicionar produto:', error);
+      alert('Falha ao adicionar o produto.');
     }
-  }
+  };
 
   const handleEditProduct = async (updatedProduto) => {
     console.log(updatedProduto.id)
@@ -97,23 +101,31 @@ function App() {
     setEstaAberto(true)
   }
 
-  const handleDelete = (produtoId) => {
-    setProdutos(produtos.filter(p => p.id !== produtoId))
-  }
 
-  const handleAddToCart = (produto) => {
-    const itemExistente = carrinho.find(item => item.id === produto.id)
-    if (itemExistente) {
-      if (itemExistente.quantidade >= produto.amount) return
-      setCarrinho(carrinho.map(item =>
-        item.id === produto.id
-          ? { ...item, quantidade: item.quantidade + 1 }
-          : item
-      ))
-    } else {
-      setCarrinho([...carrinho, { ...produto, quantidade: 1 }])
+  const handleDelete = async (id) => {
+    try {
+      await produtoService.delete(id);
+      setProdutos(produtos.filter(p => p.id !== id));
+    } catch (error) {
+      console.error('Erro ao deletar produto:', error);
     }
+  };
+
+const handleAddToCart = async (produto) => {
+  try {
+    if (!carrinhoCriado) {
+      await carrinhoService.criarCarrinho()
+      setCarrinhoCriado(true)
+    }
+
+    const produtoId = produto.id 
+    const carrinhoAtualizado = await carrinhoService.adicionarProdutoCarrinho(produtoId)
+    console.log('Carrinho atualizado:', carrinhoAtualizado)
+  } catch (err) {
+    console.error('Erro ao adicionar produto ao carrinho:', err)
+    alert('Não foi possível adicionar o produto ao carrinho.')
   }
+}
 
   const handleCheckoutComplete = (detalhePagamento) => {
     // Atualiza estoque
@@ -155,8 +167,8 @@ function App() {
       localStorage.removeItem('token')
       localStorage.removeItem('carrinho')
       localStorage.removeItem('vendas')
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('tokenExpiration');
+      localStorage.removeItem('refreshToken')
+      localStorage.removeItem('tokenExpiration')
     }
   }
 

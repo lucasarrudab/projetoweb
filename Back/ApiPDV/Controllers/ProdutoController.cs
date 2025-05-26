@@ -106,7 +106,7 @@ namespace ApiPDV.Controllers
             if (produtoDto is null)
                 return BadRequest();
             var produto = _mapper.Map<Produto>(produtoDto);
-            produto.DataCadastro = DateTime.Now;
+            produto.DataCadastro = DateTime.UtcNow;
             var novoProduto = _uof.ProdutoRepository.Create(produto);
             await _uof.CommitAsync();
             var novoProdutoDto = _mapper.Map<ProdutoResponseDTO>(produto);

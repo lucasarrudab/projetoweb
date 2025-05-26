@@ -12,9 +12,7 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product, prod
   })
   const [erro, setErro] = useState('')
 
-  useEffect(() => {
-  console.log('product recebido:', product)
-  
+  useEffect(() => {  
     if (product) {
       setDadosFormulario({
         nome: product.nome || '',
@@ -23,7 +21,7 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product, prod
         estoque: product.estoque?.toString() || '',
         id: product.id || '',
         // image: null,
-        // imagePreview: product.imageUrl || ''
+        imagePreview: product.imageUrl || ''
       })
       setErro('')
     } else {
@@ -64,13 +62,13 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product, prod
       return
     }
 
-    // const imageUrl = dadosFormulario.image 
-    //   ? URL.createObjectURL(dadosFormulario.image)
-    //   : dadosFormulario.imagePreview
+    const imageUrl = dadosFormulario.image 
+      ? URL.createObjectURL(dadosFormulario.image)
+      : dadosFormulario.imagePreview
 
     onSubmit({
       ...dadosFormulario,
-      // imageUrl,
+      imageUrl,
       estoque: dadosFormulario.estoque ? parseInt(dadosFormulario.estoque) : 0,
       preco: dadosFormulario.preco ? parseFloat(dadosFormulario.preco) : 0
     })
@@ -112,8 +110,8 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product, prod
                   {product ? 'Editar Produto' : 'Adicionar Novo Produto'}
                 </Dialog.Title>
                 <form onSubmit={handleSubmit}>
-                  <div className="space-y-4">
-                    <div>
+                    <div className="space-y-4">
+                      <div>
                       <label className="block text-sm font-medium text-gray-700">
                         ID do Produto
                       </label>
@@ -121,12 +119,17 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product, prod
                         type="text"
                         value={dadosFormulario.codigo}
                         onChange={(e) => {
-                          setDadosFormulario({ ...dadosFormulario, codigo: e.target.value})
-                          setErro('')
+                          setDadosFormulario({ ...dadosFormulario, codigo: e.target.value })
+                          setErro('') // Limpa erro enquanto digita
+                        }}
+                        onBlur={() => {
+                          const codigoLength = dadosFormulario.codigo.length
+                          if (codigoLength < 8 || codigoLength > 14) {
+                            setErro('O código deve ter entre 8 e 14 caracteres.')
+                          }
                         }}
                         className={`input ${erro ? 'border-red-500 focus:ring-red-500' : ''}`}
                         required
-                        disabled={!!product}
                       />
                       {erro && (
                         <p className="mt-1 text-sm text-red-600">{erro}</p>
