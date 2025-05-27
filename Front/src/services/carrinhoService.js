@@ -17,11 +17,21 @@ export const carrinhoService = {
   },
 
   buscarCarrinhoPorId: async (id) => {
-  const response = await api.get(`/Carrinho/${id}`)
+  const response = await rawApi.get(`/Carrinho/${id}`)
   return response.data
   },
 
   deletarCarrinho: async (id) => {
-  await api.delete(`/Carrinho/${id}`)
-  }
+  await rawApi.delete(`/Carrinho/${id}`)
+  },
+
+  alterarQuantidadeProdto: async (id, quantidade) => {
+    const response = await rawApi.put(`/quantiadeproduto/${id}`, quantidade)  
+    return response.data
+  },
+
+  removerProduto: async (id) => {
+  return await carrinhoService.alterarQuantidadeProdto(id, 0)
+  } 
+
 };

@@ -60,7 +60,7 @@ export default function SalesHistory({ isAdmin }) {
   }
 
   const vendasFiltradas = getVendasFiltradas()
-  const totalVendido = vendasFiltradas.reduce((total, venda) => total + venda.total, 0)
+  const totalVendido = vendasFiltradas.reduce((total, venda) => total + venda.carrinho.valorTotalCarrinho, 0)
 
   if (loading) {
     return <p className="text-center py-12 text-gray-500">Carregando vendas...</p>
@@ -73,6 +73,8 @@ export default function SalesHistory({ isAdmin }) {
       </div>
     )
   }
+  
+  console.log(vendasFiltradas);
 
   return (
     <div className="space-y-6">
@@ -111,6 +113,7 @@ export default function SalesHistory({ isAdmin }) {
             )}
           </div>
         </div>
+        
 
         {isAdmin && (
           <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg p-6 mb-6">
@@ -118,7 +121,7 @@ export default function SalesHistory({ isAdmin }) {
             <p className="text-3xl font-bold">R$ {totalVendido.toFixed(2)}</p>
           </div>
         )}
-
+      
         <div className="space-y-6">
           {vendasFiltradas.map((venda) => (
             <div key={venda.id} className="border rounded-lg p-4">
@@ -133,19 +136,19 @@ export default function SalesHistory({ isAdmin }) {
                 </div>
                 <div className="text-right">
                   <p className="text-lg font-bold text-gray-900">
-                    Total: R$ {venda.total.toFixed(2)}
+                    Total: R$ {venda.carrinho.valorTotalCarrinho.toFixed(2)}
                   </p>
                   <p className="text-sm text-gray-500 capitalize">
-                    Pago com {venda.pagamento.method === 'credit' ? 'Cartão de Crédito' : 
-                             venda.pagamento.method === 'debit' ? 'Cartão de Débito' : 'PIX'}
+                    Pago com {venda.metodoPagamento === 'credit' ? 'Cartão de Crédito' : 
+                             venda.metodoPagamento === 'debit' ? 'Cartão de Débito' : 'PIX'}
                   </p>
                 </div>
               </div>
               <div className="space-y-2">
-                {venda.itens.map((item) => (
+                {venda.carrinho.produtos.map((item) => (
                   <div key={item.id} className="flex justify-between text-sm">
-                    <span>{item.nome} x {item.quantidade}</span>
-                    <span>R$ {(item.preco * item.quantidade).toFixed(2)}</span>
+                    <span>{item.produtoNome} x {item.quantidade}</span>
+                    <span>R$ {(item.valorUnitario * item.quantidade).toFixed(2)}</span>
                   </div>
                 ))}
               </div>

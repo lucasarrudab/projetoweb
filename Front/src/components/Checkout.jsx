@@ -4,7 +4,7 @@ import { vendasService } from '../services/vendasService';
 
 export default function Checkout({ cart, onComplete }) {
   const navegacao = useNavigate()
-  const [nomeMetodoPagamento, setNomeMetodoPagamento] = useState('credit')
+  const [nomeMetodoPagamento, setNomeMetodoPagamento] = useState('Crédito')
   const [dadosFormulario, setDadosFormulario] = useState({
     numeroCartao: '',
     nomeCartao: '',
@@ -14,7 +14,7 @@ export default function Checkout({ cart, onComplete }) {
   })
   const [erros, setErros] = useState({})
 
-  const subtotal = cart.reduce((total, item) => total + (item.preco * item.quantidade), 0)
+  const subtotal = cart.reduce((total, item) => total + (item.valorUnitario * item.quantidade), 0)
 
 const handleSubmit = async (e) => {
   e.preventDefault();
@@ -31,6 +31,8 @@ const handleSubmit = async (e) => {
   }
 };
 
+console.log(cart);
+
   return (
     <div className="max-w-2xl mx-auto">
       <div className="bg-white rounded-lg shadow-md p-6">
@@ -41,8 +43,8 @@ const handleSubmit = async (e) => {
           <div className="space-y-2">
             {cart.map((item) => (
               <div key={item.id} className="flex justify-between text-sm">
-                <span>{item.nome} x {item.quantidade}</span>
-                <span>R$ {(item.preco * item.quantidade).toFixed(2)}</span>
+                <span>{item.produtoNome} x {item.quantidade}</span>
+                <span>R$ {(item.valorUnitario * item.quantidade).toFixed(2)}</span>
               </div>
             ))}
             <div className="border-t pt-2 mt-2">
@@ -61,8 +63,8 @@ const handleSubmit = async (e) => {
               <label className="inline-flex items-center">
                 <input
                   type="radio"
-                  value="credit"
-                  checked={nomeMetodoPagamento === 'credit'}
+                  value="Crédito"
+                  checked={nomeMetodoPagamento === 'Crédito'}
                   onChange={(e) => setNomeMetodoPagamento(e.target.value)}
                   className="form-radio"
                 />
@@ -71,8 +73,8 @@ const handleSubmit = async (e) => {
               <label className="inline-flex items-center">
                 <input
                   type="radio"
-                  value="debit"
-                  checked={nomeMetodoPagamento === 'debit'}
+                  value="Débito"
+                  checked={nomeMetodoPagamento === 'Débito'}
                   onChange={(e) => setNomeMetodoPagamento(e.target.value)}
                   className="form-radio"
                 />
@@ -87,6 +89,16 @@ const handleSubmit = async (e) => {
                   className="form-radio"
                 />
                 <span className="ml-2">PIX</span>
+              </label>
+              <label className="inline-flex items-center">
+                <input
+                  type="radio"
+                  value="dinheiro"
+                  checked={nomeMetodoPagamento === 'dinheiro'}
+                  onChange={(e) => setNomeMetodoPagamento(e.target.value)}
+                  className="form-radio"
+                />
+                <span className="ml-2">Dinheiro</span>
               </label>
             </div>
           </div>
