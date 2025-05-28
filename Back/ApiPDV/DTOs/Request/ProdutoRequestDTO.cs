@@ -15,7 +15,7 @@ namespace ApiPDV.DTOs.Request
         public string? Codigo { get; set; }
         [Required(ErrorMessage = "Insira o valor do produto")]
         [Column(TypeName = "decimal(12,2)")]
-        //public IFormFile? Imagem { get; set; }
+        public IFormFile? Imagem { get; set; }
         public decimal Preco { get; set; }
         [Required(ErrorMessage = "Insira o estoque do produto")]
         [Range(1, 9999)]

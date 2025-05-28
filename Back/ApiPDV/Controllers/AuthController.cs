@@ -29,6 +29,27 @@ public class AuthController : ControllerBase
         _logger = logger;
     }
 
+    [HttpGet("usuarios")]
+    public async Task<ActionResult<IEnumerable<object>>> GetUsers()
+    {
+        var users = _userManager.Users.ToList();
+        var userRoles = new List<object>();
+
+        foreach (var user in users)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            userRoles.Add(new
+            {
+                user.Id,
+                user.UserName,
+                user.Email,
+                Roles = roles
+            });
+        }
+
+        return Ok(userRoles);
+    }
+
     /// <summary>
     /// Verifica as credenciais de um usuário
     /// </summary>
