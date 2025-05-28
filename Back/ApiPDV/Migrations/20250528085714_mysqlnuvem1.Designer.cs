@@ -3,17 +3,17 @@ using System;
 using ApiPDV.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace ApiPDV.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250523005719_supabase")]
-    partial class supabase
+    [Migration("20250528085714_mysqlnuvem1")]
+    partial class mysqlnuvem1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,68 +21,67 @@ namespace ApiPDV.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.5")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+                .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "uuid-ossp");
-            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+            MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
             modelBuilder.Entity("ApiPDV.Models.AplicationUser", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<int>("AccessFailedCount")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("varchar(256)");
 
                     b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("boolean");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("boolean");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("varchar(256)");
 
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("varchar(256)");
 
                     b.Property<string>("PasswordHash")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("boolean");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("RefreshToken")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("RefreshTokenExpiryTime")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("SecurityStamp")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("boolean");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("varchar(256)");
 
                     b.HasKey("Id");
 
@@ -100,12 +99,12 @@ namespace ApiPDV.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("Situacao")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -116,13 +115,13 @@ namespace ApiPDV.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Nome")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -155,24 +154,24 @@ namespace ApiPDV.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Codigo")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("DataCadastro")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("Estoque")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<string>("Nome")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<decimal>("Preco")
-                        .HasColumnType("numeric");
+                        .HasColumnType("decimal(65,30)");
 
                     b.HasKey("Id");
 
@@ -203,21 +202,21 @@ namespace ApiPDV.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("CarrinhoId")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<int>("ProdutoId")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<int>("Quantidade")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("ValorUnitario")
-                        .HasColumnType("numeric");
+                        .HasColumnType("decimal(65,30)");
 
                     b.HasKey("Id");
 
@@ -232,18 +231,18 @@ namespace ApiPDV.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("CarrinhoId")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("Data")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("MetodoPagamentoId")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -257,19 +256,19 @@ namespace ApiPDV.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(256)");
 
                     b.Property<string>("Name")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("varchar(256)");
 
                     b.Property<string>("NormalizedName")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("varchar(256)");
 
                     b.HasKey("Id");
 
@@ -284,19 +283,19 @@ namespace ApiPDV.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("RoleId")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(255)");
 
                     b.HasKey("Id");
 
@@ -305,23 +304,75 @@ namespace ApiPDV.Migrations
                     b.ToTable("AspNetRoleClaims", (string)null);
                 });
 
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("UserName")
+                        .HasColumnType("varchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("IdentityUser");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(255)");
 
                     b.HasKey("Id");
 
@@ -333,17 +384,17 @@ namespace ApiPDV.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("ProviderKey")
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("ProviderDisplayName")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(255)");
 
                     b.HasKey("LoginProvider", "ProviderKey");
 
@@ -355,10 +406,10 @@ namespace ApiPDV.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("RoleId")
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(255)");
 
                     b.HasKey("UserId", "RoleId");
 
@@ -370,16 +421,16 @@ namespace ApiPDV.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("Value")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 

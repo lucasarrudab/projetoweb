@@ -22,7 +22,25 @@ namespace ApiPDV.Context
 
             base.OnModelCreating(mb);
 
-           
+            mb.Entity<IdentityRole>(entity =>
+            {
+                entity.Property(e => e.Id).HasColumnType("varchar(255)");
+                entity.Property(e => e.Name).HasColumnType("varchar(256)");
+                entity.Property(e => e.NormalizedName).HasColumnType("varchar(256)");
+                entity.Property(e => e.ConcurrencyStamp).HasColumnType("varchar(256)");
+            });
+
+            mb.Entity<IdentityUser>(entity =>
+            {
+                entity.Property(e => e.Id).HasColumnType("varchar(255)");
+                entity.Property(e => e.UserName).HasColumnType("varchar(256)");
+                entity.Property(e => e.NormalizedUserName).HasColumnType("varchar(256)");
+                entity.Property(e => e.Email).HasColumnType("varchar(256)");
+                entity.Property(e => e.NormalizedEmail).HasColumnType("varchar(256)");
+                entity.Property(e => e.PasswordHash).HasColumnType("varchar(256)");
+                entity.Property(e => e.SecurityStamp).HasColumnType("varchar(256)");
+                entity.Property(e => e.ConcurrencyStamp).HasColumnType("varchar(256)");
+            });
 
             mb.Entity<Produto>().HasData(
                 new Produto

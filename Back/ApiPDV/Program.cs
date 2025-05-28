@@ -81,14 +81,14 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
-    options.AddPolicy("FuncionarioOnly", policy => policy.RequireRole("Funcionario"));
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("admin"));
+    options.AddPolicy("FuncionarioOnly", policy => policy.RequireRole("funcionario"));
     options.AddPolicy("GerenteOnly", policy => policy.RequireRole("Gerente"));
     options.AddPolicy("All", policy => policy.RequireAssertion(context =>
-                      context.User.IsInRole("Admin") || context.User.IsInRole("Funcionario") ||
+                      context.User.IsInRole("admin") || context.User.IsInRole("auncionario") ||
                       context.User.IsInRole("Gerente")));
     options.AddPolicy("Management", policy => policy.RequireAssertion(context =>
-                      context.User.IsInRole("Admin") ||
+                      context.User.IsInRole("admin") ||
                       context.User.IsInRole("Gerente")));
 });
 
@@ -102,8 +102,13 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod());
 });
 
+var mySqlConnection = builder.Configuration.GetConnectionString("AppContext");
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("AppContext")));
+                                            options.UseMySql(mySqlConnection, ServerVersion
+                                            .AutoDetect(mySqlConnection)));
+
+//builder.Services.AddDbContext<AppDbContext>(options =>
+//    options.UseNpgsql(builder.Configuration.GetConnectionString("AppContext")));
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
@@ -132,7 +137,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowFrontend");
-
+app.UseStaticFiles();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
