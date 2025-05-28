@@ -169,7 +169,7 @@ namespace ApiPDV.Controllers
                 var metodoPagamento = await _uof.MetodoPagamentoRepository.GetAsync(mp => mp.Nome.ToUpper().Equals(nomeMetodoPagamento.ToUpper()));
                 if (metodoPagamento is null)
                     return NotFound("Insira um metodo de pagamento válido");
-                var venda = new Venda { Carrinho = carrinho, Data = DateTime.Now,MetodoPagamento = metodoPagamento };
+                var venda = new Venda { Carrinho = carrinho, Data = DateTime.UtcNow,MetodoPagamento = metodoPagamento };
                 carrinho.Situacao = Models.Enum.StatusCarrinho.Fechado;
                 foreach(var produtoCarrinho in carrinho.Produtos)
                 {

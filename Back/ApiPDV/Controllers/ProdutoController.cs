@@ -101,29 +101,15 @@ namespace ApiPDV.Controllers
         /// </remarks>
         [HttpPost]
         [Authorize(Policy = "Management")]
-        public async Task<ActionResult<ProdutoResponseDTO>> Create([FromBody] ProdutoRequestDTO produtoDto)
+        public async Task<ActionResult<ProdutoResponseDTO>> Create(ProdutoRequestDTO produtoDto)
         {
             if (produtoDto is null)
                 return BadRequest();
-
-            //var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "imagens");
-            //Directory.CreateDirectory(folderPath);
-
-            //var fileName = Guid.NewGuid().ToString() + Path.GetExtension(produtoDto.Imagem.FileName);
-            //var filePath = Path.Combine(folderPath, fileName);
-
-            //using (var stream = new FileStream(filePath, FileMode.Create))
-            //{
-            //    await produtoDto.Imagem.CopyToAsync(stream);
-
-            //}
-            //var url = $"{Request.Scheme}://{Request.Host}/imagens/{fileName}";
             var produto = _mapper.Map<Produto>(produtoDto);
-            //produto.URLImagem = url;
             produto.DataCadastro = DateTime.UtcNow;
             var novoProduto = _uof.ProdutoRepository.Create(produto);
             await _uof.CommitAsync();
-            var novoProdutoDto = _mapper.Map<ProdutoResponseDTO>(novoProduto);
+            var novoProdutoDto = _mapper.Map<ProdutoResponseDTO>(produto);
             return Ok(novoProdutoDto);
         }
 

@@ -1,23 +1,27 @@
 import { Fragment, useEffect, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 
-export default function ProductDialog({ isOpen, onClose, onSubmit, product }) {
+export default function ProductDialog({ isOpen, onClose, onSubmit, product, produtos = [] }) {
   const [dadosFormulario, setDadosFormulario] = useState({
-    name: '',
-    price: '',
-    amount: '',
+    nome: '',
+    preco: '',
+    estoque: '',
     id: '',
     image: null,
     imagePreview: ''
   })
   const [erro, setErro] = useState('')
 
-  useEffect(() => {
+  useEffect(() => {  
     if (product) {
       setDadosFormulario({
-        ...product,
-        image: null,
-        imagePreview: product.imageUrl
+        nome: product.nome || '',
+        codigo: product.codigo || '',
+        preco: product.preco?.toString() || '',
+        estoque: product.estoque?.toString() || '',
+        id: product.id || '',
+        // image: null,
+        imagePreview: product.imageUrl || ''
       })
       setErro('')
     } else {
@@ -27,9 +31,10 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product }) {
 
   const resetarFormulario = () => {
     setDadosFormulario({
-      name: '',
-      price: '',
-      amount: '',
+      nome: '',
+      preco: '',
+      codigo: '',
+      estoque: '',
       id: '',
       image: null,
       imagePreview: ''
@@ -50,9 +55,8 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    
-    // Check if product with same ID already exists
-    const produtoExistente = window.produtos?.find(p => p.id === dadosFormulario.id)
+
+    const produtoExistente = produtos?.find(p => p.id === dadosFormulario.id)
     if (produtoExistente && !product) {
       setErro('Já existe um produto com este ID')
       return
@@ -61,15 +65,14 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product }) {
     const imageUrl = dadosFormulario.image 
       ? URL.createObjectURL(dadosFormulario.image)
       : dadosFormulario.imagePreview
-    
+
     onSubmit({
       ...dadosFormulario,
       imageUrl,
-      amount: parseInt(dadosFormulario.amount),
-      price: parseFloat(dadosFormulario.price)
+      estoque: dadosFormulario.estoque ? parseInt(dadosFormulario.estoque) : 0,
+      preco: dadosFormulario.preco ? parseFloat(dadosFormulario.preco) : 0
     })
 
-    // Reset form after successful submission
     resetarFormulario()
   }
 
@@ -107,21 +110,26 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product }) {
                   {product ? 'Editar Produto' : 'Adicionar Novo Produto'}
                 </Dialog.Title>
                 <form onSubmit={handleSubmit}>
-                  <div className="space-y-4">
-                    <div>
+                    <div className="space-y-4">
+                      <div>
                       <label className="block text-sm font-medium text-gray-700">
                         ID do Produto
                       </label>
                       <input
                         type="text"
-                        value={dadosFormulario.id}
+                        value={dadosFormulario.codigo}
                         onChange={(e) => {
-                          setDadosFormulario({ ...dadosFormulario, id: e.target.value })
-                          setErro('')
+                          setDadosFormulario({ ...dadosFormulario, codigo: e.target.value })
+                          setErro('') // Limpa erro enquanto digita
+                        }}
+                        onBlur={() => {
+                          const codigoLength = dadosFormulario.codigo.length
+                          if (codigoLength < 8 || codigoLength > 14) {
+                            setErro('O código deve ter entre 8 e 14 caracteres.')
+                          }
                         }}
                         className={`input ${erro ? 'border-red-500 focus:ring-red-500' : ''}`}
                         required
-                        disabled={!!product}
                       />
                       {erro && (
                         <p className="mt-1 text-sm text-red-600">{erro}</p>
@@ -156,8 +164,8 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product }) {
                       </label>
                       <input
                         type="text"
-                        value={dadosFormulario.name}
-                        onChange={(e) => setDadosFormulario({ ...dadosFormulario, name: e.target.value })}
+                        value={dadosFormulario.nome}
+                        onChange={(e) => setDadosFormulario({ ...dadosFormulario, nome: e.target.value })}
                         className="input"
                         required
                       />
@@ -169,8 +177,8 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product }) {
                       <input
                         type="number"
                         step="0.01"
-                        value={dadosFormulario.price}
-                        onChange={(e) => setDadosFormulario({ ...dadosFormulario, price: e.target.value })}
+                        value={dadosFormulario.preco}
+                        onChange={(e) => setDadosFormulario({ ...dadosFormulario, preco: e.target.value })}
                         className="input"
                         required
                       />
@@ -181,8 +189,8 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product }) {
                       </label>
                       <input
                         type="number"
-                        value={dadosFormulario.amount}
-                        onChange={(e) => setDadosFormulario({ ...dadosFormulario, amount: e.target.value })}
+                        value={dadosFormulario.estoque}
+                        onChange={(e) => setDadosFormulario({ ...dadosFormulario, estoque: e.target.value })}
                         className="input"
                         required
                       />

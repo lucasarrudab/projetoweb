@@ -1,10 +1,28 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { format, startOfDay, startOfWeek, startOfMonth, startOfYear, isWithinInterval } from 'date-fns'
+import { vendasService } from '../services/vendasService'; 
 
-export default function SalesHistory({ sales, isAdmin }) {
+export default function SalesHistory({ isAdmin }) {
+  const [sales, setSales] = useState([])
+  const [loading, setLoading] = useState(true)
   const [periodoFiltro, setPeriodoFiltro] = useState('all')
   const [dataInicioPersonalizada, setDataInicioPersonalizada] = useState('')
   const [dataFimPersonalizada, setDataFimPersonalizada] = useState('')
+
+  useEffect(() => {
+    async function fetchSales() {
+      try {
+        const dados = await vendasService.getAllVendas() 
+        setSales(dados)
+      } catch (erro) {
+        console.error('Erro ao buscar vendas:', erro)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchSales()
+  }, [])
 
   const getVendasFiltradas = () => {
     const agora = new Date()
@@ -38,18 +56,15 @@ export default function SalesHistory({ sales, isAdmin }) {
         return sales
     }
 
-    if (periodoFiltro !== 'all') {
-      return sales.filter(venda => {
-        const dataVenda = new Date(venda.data)
-        return dataVenda >= dataInicio
-      })
-    }
-
-    return sales
+    return sales.filter(venda => new Date(venda.data) >= dataInicio)
   }
 
   const vendasFiltradas = getVendasFiltradas()
-  const totalVendido = vendasFiltradas.reduce((total, venda) => total + venda.total, 0)
+  const totalVendido = vendasFiltradas.reduce((total, venda) => total + venda.carrinho.valorTotalCarrinho, 0)
+
+  if (loading) {
+    return <p className="text-center py-12 text-gray-500">Carregando vendas...</p>
+  }
 
   if (sales.length === 0) {
     return (
@@ -58,6 +73,8 @@ export default function SalesHistory({ sales, isAdmin }) {
       </div>
     )
   }
+  
+  console.log(vendasFiltradas);
 
   return (
     <div className="space-y-6">
@@ -96,6 +113,7 @@ export default function SalesHistory({ sales, isAdmin }) {
             )}
           </div>
         </div>
+        
 
         {isAdmin && (
           <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg p-6 mb-6">
@@ -103,7 +121,7 @@ export default function SalesHistory({ sales, isAdmin }) {
             <p className="text-3xl font-bold">R$ {totalVendido.toFixed(2)}</p>
           </div>
         )}
-
+      
         <div className="space-y-6">
           {vendasFiltradas.map((venda) => (
             <div key={venda.id} className="border rounded-lg p-4">
@@ -118,19 +136,19 @@ export default function SalesHistory({ sales, isAdmin }) {
                 </div>
                 <div className="text-right">
                   <p className="text-lg font-bold text-gray-900">
-                    Total: R$ {venda.total.toFixed(2)}
+                    Total: R$ {venda.carrinho.valorTotalCarrinho.toFixed(2)}
                   </p>
                   <p className="text-sm text-gray-500 capitalize">
-                    Pago com {venda.pagamento.method === 'credit' ? 'Cartão de Crédito' : 
-                             venda.pagamento.method === 'debit' ? 'Cartão de Débito' : 'PIX'}
+                    Pago com {venda.metodoPagamento === 'credit' ? 'Cartão de Crédito' : 
+                             venda.metodoPagamento === 'debit' ? 'Cartão de Débito' : 'PIX'}
                   </p>
                 </div>
               </div>
               <div className="space-y-2">
-                {venda.itens.map((item) => (
+                {venda.carrinho.produtos.map((item) => (
                   <div key={item.id} className="flex justify-between text-sm">
-                    <span>{item.name} x {item.quantidade}</span>
-                    <span>R$ {(item.price * item.quantidade).toFixed(2)}</span>
+                    <span>{item.produtoNome} x {item.quantidade}</span>
+                    <span>R$ {(item.valorUnitario * item.quantidade).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
