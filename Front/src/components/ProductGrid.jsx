@@ -21,7 +21,6 @@ export default function ProductGrid({ products, onEdit, onDelete, onAddToCart, i
       </div>
     )
   }
-
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
@@ -43,8 +42,8 @@ export default function ProductGrid({ products, onEdit, onDelete, onAddToCart, i
             <div className="p-4">
               <div className="flex justify-between items-start">
                 <h3 className="text-lg font-semibold text-gray-900">{produto.nome}</h3>
-                <span className="text-sm text-gray-500">ID: {produto.codigo}</span>
               </div>
+              <p className="text-sm text-gray-500">ID: {produto.codigo}</p>
               <p className="mt-1 text-sm text-gray-500">{produto.description}</p>
               <p className="mt-2 text-lg font-bold text-gray-900">R$ {Number(produto.preco).toFixed(2)}</p>
               <p className="mt-1 text-sm text-gray-600">Estoque: {produto.estoque}</p>

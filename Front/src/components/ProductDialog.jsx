@@ -62,15 +62,20 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product, prod
       return
     }
 
-    const imageUrl = dadosFormulario.image 
+    const ImageUrl = dadosFormulario.image 
       ? URL.createObjectURL(dadosFormulario.image)
       : dadosFormulario.imagePreview
 
+      const produtoParaEnviar = {
+      Nome: dadosFormulario.nome,
+      Codigo: dadosFormulario.codigo,
+      }
+
     onSubmit({
-      ...dadosFormulario,
-      imageUrl,
-      estoque: dadosFormulario.estoque ? parseInt(dadosFormulario.estoque) : 0,
-      preco: dadosFormulario.preco ? parseFloat(dadosFormulario.preco) : 0
+      ...produtoParaEnviar,
+      ImageUrl,
+      Estoque: dadosFormulario.estoque ? parseInt(dadosFormulario.estoque) : 0,
+      Preco: dadosFormulario.preco ? parseFloat(dadosFormulario.preco) : 0
     })
 
     resetarFormulario()

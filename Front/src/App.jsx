@@ -24,6 +24,8 @@
     const [carrinhoCriado, setCarrinhoCriado] = useState(false)
 
     useEffect(() => {
+      restaurarSessao()
+      
       const carregarProdutos = async () => {
         try {
           const produtosAPI = await produtoService.getAll()
@@ -38,7 +40,10 @@
         }
       }
 
-      const restaurarSessao = () => {
+      carregarProdutos()
+    }, [])
+
+    const restaurarSessao = () => {
         const token = localStorage.getItem('token')
         if (token) {
           try {
@@ -58,10 +63,6 @@
         }
       }
 
-      restaurarSessao()
-      carregarProdutos()
-    }, [])
-
     useEffect(() => {
       salvarCarrinho(carrinho)
     }, [carrinho])
@@ -69,7 +70,6 @@
     useEffect(() => {
       salvarVendas(vendas)
     }, [vendas])
-
     const handleCreateProduct = async (produto) => {
       try {
         const novoProduto = await produtoService.create(produto); 
@@ -82,7 +82,6 @@
     };
 
     const handleEditProduct = async (updatedProduto) => {
-      console.log(updatedProduto.id)
       try {
         const updated = await produtoService.update(updatedProduto.id, updatedProduto)
         setProdutos((prevProdutos) =>
@@ -120,7 +119,6 @@
       }
 
       const carrinhoAtualizado = await carrinhoService.adicionarProdutoCarrinho(produto.id)
-      console.log('Carrinho atualizado:', carrinhoAtualizado)
       setCarrinho(carrinhoAtualizado.produtos || [])
     } catch (err) {
       console.error('Erro ao adicionar produto ao carrinho:', err)
@@ -189,10 +187,9 @@
     if (!estaAutenticado) {
       return <Login onLogin={(ehAdmin) => {
         setEstaAutenticado(true)
-        setEhAdmin(ehAdmin)
+        restaurarSessao()
       }} />
     }
-
     return (
       <Router>
         <div className="min-h-screen bg-gray-50">
