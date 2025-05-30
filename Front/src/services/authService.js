@@ -39,4 +39,10 @@ export const authService = {
     
     return response.data;
   },
+
+  getAllUsers: async () => {
+    const response = await api.get('/auth/usuarios');
+    return response.data;
+  }
+
 };

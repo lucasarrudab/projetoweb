@@ -4,7 +4,7 @@
   import { authService } from './services/authService'
   import { produtoService } from './services/produtoService'
   import { salvarCarrinho, carregarCarrinho, salvarVendas, carregarVendas } from './services/localStorage'
-  import { ShoppingCartIcon, ClipboardDocumentListIcon, BellIcon } from '@heroicons/react/24/outline'
+  import { ShoppingCartIcon, ClipboardDocumentListIcon, BellIcon, UserIcon } from '@heroicons/react/24/outline'
   import { carrinhoService } from './services/carrinhoService'
   import ProductDialog from './components/ProductDialog'
   import ProductGrid from './components/ProductGrid'
@@ -12,6 +12,7 @@
   import Login from './components/Login'
   import SalesHistory from './components/SalesHistory'
   import Checkout from './components/Checkout'
+  import UserList from './components/UserList'
 
   function App() {
     const [estaAberto, setEstaAberto] = useState(false)
@@ -210,6 +211,13 @@
                       >
                         Adicionar Produto
                       </button>
+                    <Link
+                      to="/users"
+                      className="flex items-center space-x-1 text-gray-600 hover:text-gray-900"
+                    >
+                      <UserIcon className="h-6 w-6" />
+                      <span>Usuários</span>
+                    </Link>
                       <Link
                         to="/sales"
                         className="flex items-center space-x-1 text-gray-600 hover:text-gray-900"
@@ -293,6 +301,12 @@
                   <SalesHistory sales={vendas} isAdmin={ehAdmin} />
                 }
               />
+            {ehAdmin && (
+              <Route
+                path="/users"
+                element={<UserList />}
+              />
+            )}
             </Routes>
 
             {ehAdmin && (
