@@ -127,10 +127,73 @@ public class AuthController : ControllerBase
         if (!result.Succeeded)
         {
             return StatusCode(StatusCodes.Status500InternalServerError,
-                new LoginResponse { Status = "Error", Message = "User creation failed." });
+                new LoginResponse { Status = "Error", Message = "Falha ao criar usuario." });
         }
 
-        return Ok(new LoginResponse { Status = "Sucess", Message = "User created sucessfully!" });
+        return Ok(new LoginResponse { Status = "Sucess", Message = "Usuario criado!" });
+    }
+
+    [HttpPut("{id}")]
+    [Authorize(Policy = "AdminOnly")]
+    public async Task<IActionResult> EditUser([FromBody] UpdateModel model, string id)
+    {
+
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+        {
+            return BadRequest("Usuario não encontrado");
+        }
+        user.Email = model.Email;
+        user.UserName = model.UserName;
+        var result = await _userManager.UpdateAsync(user);
+
+        if (!result.Succeeded)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new LoginResponse { Status = "Error", Message = "Erro ao atualizar usuario." });
+        }
+
+        return Ok(new LoginResponse { Status = "Sucess", Message = "Usuario atualizado!" });
+
+    }
+
+    [HttpPut("senha/{id}")]
+    [Authorize(Policy = "AdminOnly")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel model, string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+        {
+            return BadRequest("Usuario não encontrado");
+        }
+
+        var result = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
+
+        if (!result.Succeeded)
+        {
+            return StatusCode(StatusCodes.Status400BadRequest,
+                new LoginResponse { Status = "Error", Message = "Senha incorreta." });
+        }
+        return Ok(new LoginResponse { Status = "Sucess", Message = "Senha atualizada com sucesso!" });
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Policy = "AdminOnly")]
+    public async Task<IActionResult> DeleteUser(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+        {
+            return BadRequest("Usuario não encontrado");
+        }
+
+        var result = await _userManager.DeleteAsync(user);
+        if (!result.Succeeded)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new LoginResponse { Status = "Error", Message = "Erro ao excluir usuario." });
+        }
+        return Ok(new LoginResponse { Status = "Sucess", Message = "Usuario excluido com sucesso!" });
     }
 
     /// <summary>
