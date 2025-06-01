@@ -43,6 +43,21 @@ export const authService = {
   getAllUsers: async () => {
     const response = await api.get('/auth/usuarios');
     return response.data;
+  },
+
+  delete: async (id) => {
+    const response = await api.delete(`/auth/${id}`);
+    return response.data;
+  },
+
+  update: async (id, userData) => {
+    const response = await api.put(`/auth/${id}`, userData);
+    return response.data;
+  },
+
+  updatePassword: async (id, userData) => {
+    const response = await api.put(`/auth/senha/${id}`, userData);
+    return response.data;
   }
 
 };

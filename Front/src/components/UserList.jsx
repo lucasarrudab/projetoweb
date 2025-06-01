@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
-import { Dialog, Transition } from '@headlessui/react'
+import { Dialog, Transition, Tab } from '@headlessui/react'
 import { Fragment } from 'react'
 import { authService } from '../services/authService'
 
@@ -10,6 +10,10 @@ export default function UserList() {
   const [estaAberto, setEstaAberto] = useState(false)
   const [usuarioParaExcluir, setUsuarioParaExcluir] = useState(null)
   const [estaAbertoConfirmacao, setEstaAbertoConfirmacao] = useState(false)
+  const [senhas, setSenhas] = useState({
+    OldPassword: '',
+    NewPassword: ''
+  })
 
   useEffect(() => {
     carregarUsuarios()
@@ -26,6 +30,7 @@ export default function UserList() {
 
   const handleEdit = (usuario) => {
     setUsuarioEditando(usuario)
+    setSenhas({ OldPassword: '', NewPassword: '' })
     setEstaAberto(true)
   }
 
@@ -36,8 +41,7 @@ export default function UserList() {
 
   const confirmarExclusao = async () => {
     try {
-      // Implement delete user API call here
-      // await authService.deleteUser(usuarioParaExcluir.id)
+      await authService.delete(usuarioParaExcluir.id)
       setUsuarios(usuarios.filter(u => u.id !== usuarioParaExcluir.id))
       setEstaAbertoConfirmacao(false)
       setUsuarioParaExcluir(null)
@@ -46,11 +50,13 @@ export default function UserList() {
     }
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmitInfo = async (e) => {
     e.preventDefault()
     try {
-      // Implement update user API call here
-      // await authService.updateUser(usuarioEditando.id, usuarioEditando)
+      await authService.update(usuarioEditando.id, {
+        userName: usuarioEditando.userName,
+        email: usuarioEditando.email,
+      })
       setUsuarios(usuarios.map(u => 
         u.id === usuarioEditando.id ? usuarioEditando : u
       ))
@@ -58,6 +64,21 @@ export default function UserList() {
       setUsuarioEditando(null)
     } catch (erro) {
       console.error('Erro ao atualizar usuário:', erro)
+    }
+  }
+
+  const handleSubmitPassword = async (e) => {
+    e.preventDefault()
+    try {
+      await authService.updatePassword(usuarioEditando.id, {
+        OldPassword: senhas.OldPassword,
+        NewPassword: senhas.NewPassword
+      })
+      setEstaAberto(false)
+      setUsuarioEditando(null)
+      setSenhas({ OldPassword: '', NewPassword: '' })
+    } catch (erro) {
+      console.error('Erro ao atualizar senha:', erro)
     }
   }
 
@@ -94,13 +115,13 @@ export default function UserList() {
                     {usuario.id}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {usuario.nome}
+                    {usuario.userName}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {usuario.email}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {usuario.ehAdmin ? 'Administrador' : 'Usuário'}
+                    {usuario.roles.includes("admin") ? 'Administrador' : usuario.roles.includes("Gerente") ? 'Gerente' : 'Usuário'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
@@ -122,7 +143,6 @@ export default function UserList() {
           </table>
         </div>
 
-        {/* Modal de Edição */}
         <Transition appear show={estaAberto} as={Fragment}>
           <Dialog
             as="div"
@@ -140,80 +160,140 @@ export default function UserList() {
               <div className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
                 <Dialog.Title
                   as="h3"
-                  className="text-lg font-medium leading-6 text-gray-900"
+                  className="text-lg font-medium leading-6 text-gray-900 mb-4"
                 >
                   Editar Usuário
                 </Dialog.Title>
-                <form onSubmit={handleSubmit} className="mt-4">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Nome
-                      </label>
-                      <input
-                        type="text"
-                        value={usuarioEditando?.nome || ''}
-                        onChange={(e) => setUsuarioEditando({
-                          ...usuarioEditando,
-                          nome: e.target.value
-                        })}
-                        className="input"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        value={usuarioEditando?.email || ''}
-                        onChange={(e) => setUsuarioEditando({
-                          ...usuarioEditando,
-                          email: e.target.value
-                        })}
-                        className="input"
-                        required
-                      />
-                    </div>
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id="ehAdmin"
-                        checked={usuarioEditando?.ehAdmin || false}
-                        onChange={(e) => setUsuarioEditando({
-                          ...usuarioEditando,
-                          ehAdmin: e.target.checked
-                        })}
-                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor="ehAdmin" className="ml-2 block text-sm text-gray-900">
-                        Administrador
-                      </label>
-                    </div>
-                  </div>
-                  <div className="mt-6 flex justify-end space-x-3">
-                    <button
-                      type="button"
-                      onClick={() => setEstaAberto(false)}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+
+                <Tab.Group>
+                  <Tab.List className="flex space-x-1 rounded-xl bg-blue-900/20 p-1 mb-4">
+                    <Tab
+                      className={({ selected }) =>
+                        `w-full rounded-lg py-2.5 text-sm font-medium leading-5 text-blue-700
+                        ${selected
+                          ? 'bg-white shadow'
+                          : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
+                        }`
+                      }
                     >
-                      Cancelar
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md"
+                      Informações
+                    </Tab>
+                    <Tab
+                      className={({ selected }) =>
+                        `w-full rounded-lg py-2.5 text-sm font-medium leading-5 text-blue-700
+                        ${selected
+                          ? 'bg-white shadow'
+                          : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
+                        }`
+                      }
                     >
-                      Salvar
-                    </button>
-                  </div>
-                </form>
+                      Senha
+                    </Tab>
+                  </Tab.List>
+                  <Tab.Panels>
+                    <Tab.Panel>
+                      <form onSubmit={handleSubmitInfo} className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Nome
+                          </label>
+                          <input
+                            type="text"
+                            value={usuarioEditando?.userName || ''}
+                            onChange={(e) => setUsuarioEditando({
+                              ...usuarioEditando,
+                              userName: e.target.value
+                            })}
+                            className="input"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Email
+                          </label>
+                          <input
+                            type="email"
+                            value={usuarioEditando?.email || ''}
+                            onChange={(e) => setUsuarioEditando({
+                              ...usuarioEditando,
+                              email: e.target.value
+                            })}
+                            className="input"
+                          />
+                        </div>
+                        <div className="flex justify-end space-x-3">
+                          <button
+                            type="button"
+                            onClick={() => setEstaAberto(false)}
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="submit"
+                            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md"
+                          >
+                            Salvar
+                          </button>
+                        </div>
+                      </form>
+                    </Tab.Panel>
+                    <Tab.Panel>
+                      <form onSubmit={handleSubmitPassword} className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Senha Atual
+                          </label>
+                          <input
+                            type="password"
+                            value={senhas.OldPassword}
+                            onChange={(e) => setSenhas({
+                              ...senhas,
+                              OldPassword: e.target.value
+                            })}
+                            className="input"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Nova Senha
+                          </label>
+                          <input
+                            type="password"
+                            value={senhas.NewPassword}
+                            onChange={(e) => setSenhas({
+                              ...senhas,
+                              NewPassword: e.target.value
+                            })}
+                            className="input"
+                            required
+                          />
+                        </div>
+                        <div className="flex justify-end space-x-3">
+                          <button
+                            type="button"
+                            onClick={() => setEstaAberto(false)}
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="submit"
+                            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md"
+                          >
+                            Alterar Senha
+                          </button>
+                        </div>
+                      </form>
+                    </Tab.Panel>
+                  </Tab.Panels>
+                </Tab.Group>
               </div>
             </div>
           </Dialog>
         </Transition>
 
-        {/* Modal de Confirmação de Exclusão */}
         <Transition appear show={estaAbertoConfirmacao} as={Fragment}>
           <Dialog
             as="div"

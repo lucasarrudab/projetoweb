@@ -125,7 +125,7 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product, prod
                         value={dadosFormulario.codigo}
                         onChange={(e) => {
                           setDadosFormulario({ ...dadosFormulario, codigo: e.target.value })
-                          setErro('') // Limpa erro enquanto digita
+                          setErro('') 
                         }}
                         onBlur={() => {
                           const codigoLength = dadosFormulario.codigo.length
