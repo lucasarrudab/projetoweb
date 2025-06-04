@@ -51,7 +51,11 @@ export default function ProductGrid({ products, onEdit, onDelete, onAddToCart, i
                 {isAdmin && (
                   <div className="space-x-2">
                     <button
-                      onClick={() => onEdit(produto)}
+                      onClick={() => {
+                        onEdit(produto)
+                        console.log(onEdit)
+                        console.log(produto)
+                      }}
                       className="text-pink-600 hover:text-pink-900"
                     >
                       <PencilIcon className="h-5 w-5" />

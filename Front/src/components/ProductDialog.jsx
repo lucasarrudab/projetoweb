@@ -6,6 +6,7 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product, prod
     nome: '',
     preco: '',
     estoque: '',
+    codigo: '',
     id: '',
     image: null,
     imagePreview: ''
@@ -56,12 +57,12 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product, prod
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    const produtoExistente = produtos?.find(p => p.id === dadosFormulario.id)
-    if (produtoExistente && !product) {
-      setErro('Já existe um produto com este ID')
+    const produtoExistente = produtos?.find(p => p.codigo === dadosFormulario.codigo && p.id !== dadosFormulario.id)
+    if (produtoExistente) {
+       setErro('Já existe um produto com este código')
       return
     }
-
+    
     const ImageUrl = dadosFormulario.image 
       ? URL.createObjectURL(dadosFormulario.image)
       : dadosFormulario.imagePreview
@@ -69,6 +70,7 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product, prod
       const produtoParaEnviar = {
       Nome: dadosFormulario.nome,
       Codigo: dadosFormulario.codigo,
+      id: dadosFormulario.id
       }
 
     onSubmit({

@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { TrashIcon } from '@heroicons/react/24/outline'
 import { carrinhoService } from '../services/carrinhoService'
+import { produtoService } from '../services/produtoService'
 
 export default function Cart({ cart, setCart }) {
   const navegacao = useNavigate()
   const [carregando, setCarregando] = useState(true)
-
+  const [produtoCodigo, setProdutoCodigo] = useState('')
+  
   useEffect(() => {
     const carregarCarrinho = async () => {
       const carrinhoId = localStorage.getItem('carrinhoId') 
@@ -58,6 +60,43 @@ const handleQuantityChange = async (produtoId, novaQuantidade) => {
     }
   }
 
+  const handleAddByCodigo = async () => {
+  if (!produtoCodigo) return
+
+  try {
+    const produtos = await produtoService.getAll()
+    const produto = produtos.find(p => p.codigo === produtoCodigo)
+
+    if (!produto) {
+      console.warn('Produto não encontrado.')
+      return
+    }
+
+    const itemExistente = cart.find(item => item.codigo === produto.codigo)
+
+    if (itemExistente) {
+      if (itemExistente.quantidade >= produto.amount) return
+      setCart(cart.map(item =>
+        item.codigo === produto.codigo
+          ? { ...item, quantidade: item.quantidade + 1 }
+          : item
+      ))
+    } else {
+      const novoProduto = {
+        ...produto,
+        quantidade: 1,
+        preco: produto.preco || produto.valorUnitario || 0,
+        imageUrl: produto.imageUrl || '/default.png',
+      }
+      setCart([...cart, novoProduto])
+    }
+
+    setProdutoCodigo('')
+  } catch (error) {
+    console.error("Erro ao adicionar produto pelo código:", error)
+  }
+}
+
   const subtotal = Array.isArray(cart)
     ? cart.reduce((total, item) => {
         const preco = Number(item.preco || item.valorUnitario)
@@ -91,6 +130,25 @@ const handleQuantityChange = async (produtoId, novaQuantidade) => {
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Carrinho de Compras</h2>
+      <div className="mb-6">
+      <label htmlFor="codigo-produto" className="block text-sm font-medium text-gray-700">
+        Adicionar produto por código
+      </label>
+      <input
+        id="codigo-produto"
+        type="text"
+        value={produtoCodigo}
+        onChange={(e) => setProdutoCodigo(e.target.value)}
+        onKeyDown={async (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            await handleAddByCodigo()
+          }
+        }}
+        placeholder="Digite o código e pressione Enter"
+        className="mt-1 block w-full sm:w-64 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+      />
+    </div>
       <div className="space-y-4">
         {Array.isArray(cart) &&
           cart.map((item) => (

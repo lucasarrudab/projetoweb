@@ -30,6 +30,7 @@
       const carregarProdutos = async () => {
         try {
           const produtosAPI = await produtoService.getAll()
+          console.log(produtosAPI);
           const newProduto = produtosAPI.map(p => ({
             ...p,
             imageUrl: p.imageUrl || '/default.png'
@@ -83,6 +84,8 @@
     };
 
     const handleEditProduct = async (updatedProduto) => {
+      console.log("produutoupdated")
+      console.log(updatedProduto)
       try {
         const updated = await produtoService.update(updatedProduto.id, updatedProduto)
         setProdutos((prevProdutos) =>
