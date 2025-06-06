@@ -18,12 +18,13 @@ namespace ApiPDV.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _uof;
+        private readonly IWebHostEnvironment _environment;
 
-        public ProdutoController(IUnitOfWork uof, IMapper mapper)
+        public ProdutoController(IUnitOfWork uof, IMapper mapper, IWebHostEnvironment environment)
         {
             _uof = uof;
             _mapper = mapper;
-
+            _environment = environment;
         }
 
         /// <summary>
@@ -107,11 +108,29 @@ namespace ApiPDV.Controllers
                 return BadRequest();
             var produto = _mapper.Map<Produto>(produtoDto);
             produto.DataCadastro = DateTime.UtcNow;
-            var novoProduto = _uof.ProdutoRepository.Create(produto);
-            await _uof.CommitAsync();
-            var novoProdutoDto = _mapper.Map<ProdutoResponseDTO>(produto);
-            return Ok(novoProdutoDto);
+             if (produtoDto.Imagem != null && produtoDto.Imagem.Length > 0)
+    {
+        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/produtos");
+        if (!Directory.Exists(uploadsFolder))
+            Directory.CreateDirectory(uploadsFolder);
+
+        var fileName = Guid.NewGuid().ToString() + Path.GetExtension(produtoDto.Imagem.FileName);
+        var filePath = Path.Combine(uploadsFolder, fileName);
+
+        using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await produtoDto.Imagem.CopyToAsync(stream);
         }
+
+        produto.URLImagem = $"/images/produtos/{fileName}";
+    }
+
+    var novoProduto = _uof.ProdutoRepository.Create(produto);
+    await _uof.CommitAsync();
+
+    var responseDto = _mapper.Map<ProdutoResponseDTO>(produto);
+    return Ok(responseDto);
+}
 
         /// <summary>
         /// Atualiza um produto
@@ -121,13 +140,33 @@ namespace ApiPDV.Controllers
         /// </remarks>
         [HttpPut("{id:int}")]
         [Authorize(Policy = "Management")]
-        public async Task<ActionResult<ProdutoResponseDTO>> Put(ProdutoRequestDTO produtoDto, int id)
+        public async Task<ActionResult<ProdutoResponseDTO>> Put([FromForm]ProdutoRequestDTO produtoDto, int id)
         {
             var produtoExistente = await _uof.ProdutoRepository.GetAsync(p => p.Id == id);
         if (produtoExistente is null)
             return NotFound("Produto não encontrado.");
 
-        _mapper.Map(produtoDto, produtoExistente); // Atualiza os campos do produto existente
+            if (produtoDto.Imagem != null && produtoDto.Imagem.Length > 0)
+            {
+                
+                var uploadsFolder = Path.Combine(_environment.WebRootPath, "images/produtos");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                
+                var uniqueFileName = $"{Guid.NewGuid()}{Path.GetExtension(produtoDto.Imagem.FileName)}";
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await produtoDto.Imagem.CopyToAsync(fileStream);
+                }
+
+                
+                produtoExistente.URLImagem = $"/images/produtos/{uniqueFileName}";
+            }
+
+            _mapper.Map(produtoDto, produtoExistente); 
         var produtoAtualizado = _uof.ProdutoRepository.Update(produtoExistente);
         await _uof.CommitAsync();
 

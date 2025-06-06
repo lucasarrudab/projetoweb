@@ -89,7 +89,7 @@ namespace ApiPDV.Controllers
         /// </remarks>
         [HttpPut]
         [Authorize(Policy = "All")]
-        public async Task<ActionResult<CarrinhoDTO>> AdicionarAoCarrinho([FromBody] int code)
+        public async Task<ActionResult<CarrinhoDTO>> AdicionarAoCarrinho([FromBody] string code)
         {
             Produto produto;
            
@@ -100,7 +100,7 @@ namespace ApiPDV.Controllers
             }
             else
             {
-                produto = await _uof.ProdutoRepository.GetNoTrackingAsync(p => p.Id == code);
+                produto = await _uof.ProdutoRepository.GetNoTrackingAsync(p => p.Id.ToString() == code);
             }
             if (produto is null)
                 return NotFound("Produto não encontrado");
@@ -109,7 +109,7 @@ namespace ApiPDV.Controllers
             {
                 if (carrinho == null)
                 {
-                    return NotFound("Carrinho não encontrado!!");
+                    return BadRequest("Crie um novo carrinho");
                 }
 
                 var produtoCarrinho = carrinho.Produtos.Where(p => p.ProdutoId == produto.Id).FirstOrDefault();

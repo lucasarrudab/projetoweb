@@ -8,6 +8,7 @@ namespace ApiPDV.DTOs
     {
         public int Id { get; set; }
         public string? ProdutoNome { get; set; }
+        public string? UrlImagem { get; set; }
         public int ProdutoId { get; set; }
         [Range(0,9999)]
         public int Quantidade { get; set; }

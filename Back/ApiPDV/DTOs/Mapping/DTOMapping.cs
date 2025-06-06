@@ -13,7 +13,8 @@ namespace ApiPDV.DTOs.Mapping
             CreateMap<Produto, ProdutoResponseDTO>().ReverseMap();
             CreateMap<Carrinho, CarrinhoDTO>().ReverseMap();
             CreateMap<ProdutoCarrinho, ProdutoCarrinhoDTO>()
-                .ForMember(dest => dest.ProdutoNome, opt => opt.MapFrom(src => src.Produto.Nome));
+                .ForMember(dest => dest.ProdutoNome, opt => opt.MapFrom(src => src.Produto.Nome))
+                .ForMember(dest => dest.UrlImagem, opt => opt.MapFrom(src => src.Produto.URLImagem));
             CreateMap<Venda, VendaDTO>()
                 .ForMember(dest => dest.MetodoPagamento, opt => opt.MapFrom(src => src.MetodoPagamento.Nome));
                 
