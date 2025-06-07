@@ -8,12 +8,12 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product, prod
     estoque: '',
     codigo: '',
     id: '',
-    image: null,
+    imagem: null,
     imagePreview: ''
   })
   const [erro, setErro] = useState('')
 
-  useEffect(() => {  
+  useEffect(() => {
     if (product) {
       setDadosFormulario({
         nome: product.nome || '',
@@ -37,7 +37,7 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product, prod
       codigo: '',
       estoque: '',
       id: '',
-      image: null,
+      imagem: null,
       imagePreview: ''
     })
     setErro('')
@@ -48,43 +48,40 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product, prod
     if (arquivo) {
       setDadosFormulario({
         ...dadosFormulario,
-        image: arquivo,
+        imagem: arquivo,
         imagePreview: URL.createObjectURL(arquivo)
       })
     }
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
+ const handleSubmit = (e) => {
+  e.preventDefault()
 
-    const produtoExistente = produtos?.find(p => p.codigo === dadosFormulario.codigo && p.id !== dadosFormulario.id)
-    if (produtoExistente) {
-       setErro('Já existe um produto com este código')
-      return
-    }
-    
-    const ImageUrl = dadosFormulario.image 
-      ? URL.createObjectURL(dadosFormulario.image)
-      : dadosFormulario.imagePreview
-
-      const produtoParaEnviar = {
-      Nome: dadosFormulario.nome,
-      Codigo: dadosFormulario.codigo,
-      id: dadosFormulario.id
-      }
-
-    onSubmit({
-      ...produtoParaEnviar,
-      ImageUrl,
-      Estoque: dadosFormulario.estoque ? parseInt(dadosFormulario.estoque) : 0,
-      Preco: dadosFormulario.preco ? parseFloat(dadosFormulario.preco) : 0
-    })
-
-    resetarFormulario()
+  const produtoExistente = produtos?.find(p => p.codigo === dadosFormulario.codigo && p.id !== dadosFormulario.id)
+  if (produtoExistente) {
+    setErro('Já existe um produto com este código')
+    return
   }
 
+  const precoCorrigido = dadosFormulario.preco.replace(',', '.')
+
+  const formData = new FormData()
+  formData.append('Nome', dadosFormulario.nome)
+  formData.append('Codigo', dadosFormulario.codigo)
+  formData.append('Estoque', dadosFormulario.estoque.toString())
+  formData.append('Preco', Number(precoCorrigido).toFixed(2).replace('.', ','))
+
+  if (dadosFormulario.imagem) {
+    formData.append('Imagem', dadosFormulario.imagem)
+  }
+
+  onSubmit(formData)
+  resetarFormulario()
+}
+
+
   return (
-    <Transition appear show={isOpen}as={Fragment}>
+    <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={onClose}>
         <Transition.Child
           as={Fragment}
@@ -117,8 +114,8 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product, prod
                   {product ? 'Editar Produto' : 'Adicionar Novo Produto'}
                 </Dialog.Title>
                 <form onSubmit={handleSubmit}>
-                    <div className="space-y-4">
-                      <div>
+                  <div className="space-y-4">
+                    <div>
                       <label className="block text-sm font-medium text-gray-700">
                         ID do Produto
                       </label>
@@ -127,7 +124,7 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product, prod
                         value={dadosFormulario.codigo}
                         onChange={(e) => {
                           setDadosFormulario({ ...dadosFormulario, codigo: e.target.value })
-                          setErro('') 
+                          setErro('')
                         }}
                         onBlur={() => {
                           const codigoLength = dadosFormulario.codigo.length
@@ -182,8 +179,8 @@ export default function ProductDialog({ isOpen, onClose, onSubmit, product, prod
                         Preço (R$)
                       </label>
                       <input
-                        type="number"
-                        step="0.01"
+                        type="text"
+                        inputMode="decimal"
                         value={dadosFormulario.preco}
                         onChange={(e) => setDadosFormulario({ ...dadosFormulario, preco: e.target.value })}
                         className="input"

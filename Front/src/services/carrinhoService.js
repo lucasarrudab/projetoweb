@@ -7,7 +7,9 @@ export const carrinhoService = {
   },
 
   adicionarProdutoCarrinho: async (code) => {
-    const response = await rawApi.put('/Carrinho', code);
+    const response = await rawApi.put('/Carrinho', `"${code}"`, {
+  headers: { 'Content-Type': 'application/json' }
+});
     return response.data;
   },
 

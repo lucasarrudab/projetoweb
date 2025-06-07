@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import { TrashIcon } from '@heroicons/react/24/outline'
 import { carrinhoService } from '../services/carrinhoService'
 import { produtoService } from '../services/produtoService'
+import { carregarCarrinho } from '../services/localStorage'
+
+const BASE_URL = 'http://localhost:5025'
 
 export default function Cart({ cart, setCart }) {
   const navegacao = useNavigate()
@@ -14,13 +17,13 @@ export default function Cart({ cart, setCart }) {
       const carrinhoId = localStorage.getItem('carrinhoId') 
       
       if (!carrinhoId) {
-        setCarregando(false)
+        carrinhoService.criarCarrinho();
         return
       }
 
       try {
         const carrinho = await carrinhoService.buscarCarrinhoPorId(carrinhoId)
-        setCart(carrinho.produtos || []) 
+        setCart(mapProdutosComImagem(carrinho.produtos)) 
       } catch (err) {
         console.error('Erro ao buscar carrinho:', err)
       } finally {
@@ -64,38 +67,20 @@ const handleQuantityChange = async (produtoId, novaQuantidade) => {
   if (!produtoCodigo) return
 
   try {
-    const produtos = await produtoService.getAll()
-    const produto = produtos.find(p => p.codigo === produtoCodigo)
+    const carrinhoAtualizado = await carrinhoService.adicionarProdutoCarrinho(produtoCodigo);
+setCart(mapProdutosComImagem(carrinhoAtualizado.produtos));
 
-    if (!produto) {
-      console.warn('Produto não encontrado.')
-      return
-    }
-
-    const itemExistente = cart.find(item => item.codigo === produto.codigo)
-
-    if (itemExistente) {
-      if (itemExistente.quantidade >= produto.amount) return
-      setCart(cart.map(item =>
-        item.codigo === produto.codigo
-          ? { ...item, quantidade: item.quantidade + 1 }
-          : item
-      ))
-    } else {
-      const novoProduto = {
-        ...produto,
-        quantidade: 1,
-        preco: produto.preco || produto.valorUnitario || 0,
-        imageUrl: produto.imageUrl || '/default.png',
-      }
-      setCart([...cart, novoProduto])
-    }
-
-    setProdutoCodigo('')
+    
   } catch (error) {
     console.error("Erro ao adicionar produto pelo código:", error)
   }
 }
+
+const mapProdutosComImagem = (produtos) =>
+  (produtos || []).map(item => ({
+    ...item,
+    imageUrl: item.urlImagem ? `${BASE_URL}${item.urlImagem}` : '/default.png'
+  }));
 
   const subtotal = Array.isArray(cart)
     ? cart.reduce((total, item) => {
@@ -152,6 +137,7 @@ const handleQuantityChange = async (produtoId, novaQuantidade) => {
       <div className="space-y-4">
         {Array.isArray(cart) &&
           cart.map((item) => (
+            
            <div key={item.id} className="flex items-center space-x-4 py-4 border-b">
             <img
               src={item.imageUrl || '/default.png'}

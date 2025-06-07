@@ -139,8 +139,7 @@ export default function SalesHistory({ isAdmin }) {
                     Total: R$ {venda.carrinho.valorTotalCarrinho.toFixed(2)}
                   </p>
                   <p className="text-sm text-gray-500 capitalize">
-                    Pago com {venda.metodoPagamento === 'credit' ? 'Cartão de Crédito' : 
-                             venda.metodoPagamento === 'debit' ? 'Cartão de Débito' : 'PIX'}
+                    Pago com {venda.metodoPagamento}
                   </p>
                 </div>
               </div>

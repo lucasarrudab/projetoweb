@@ -13,12 +13,20 @@
   import SalesHistory from './components/SalesHistory'
   import Checkout from './components/Checkout'
   import UserList from './components/UserList'
+  
+  const BASE_URL = 'http://localhost:5025'
 
   function App() {
     const [estaAberto, setEstaAberto] = useState(false)
     const [produtos, setProdutos] = useState([])
     const [produtoEditando, setProdutoEditando] = useState(null)
-    const [carrinho, setCarrinho] = useState(() => carregarCarrinho())
+    const [carrinho,  setCarrinho] = useState(() => {
+  const itens = carregarCarrinho()
+  return itens.map(item => ({
+    ...item,
+    imageUrl: item.urlImagem ? `${BASE_URL}${item.urlImagem}` : '/default.png'
+  }))
+})
     const [estaAutenticado, setEstaAutenticado] = useState(false)
     const [ehAdmin, setEhAdmin] = useState(false)
     const [vendas, setVendas] = useState(() => carregarVendas())
@@ -29,11 +37,12 @@
       
       const carregarProdutos = async () => {
         try {
+          
           const produtosAPI = await produtoService.getAll()
           console.log(produtosAPI);
           const newProduto = produtosAPI.map(p => ({
             ...p,
-            imageUrl: p.imageUrl || '/default.png'
+            imageUrl: p.urlImagem ? `${BASE_URL}${p.urlImagem}` : '/default.png'
           }))
           .sort((a, b) => a.nome.localeCompare(b.nome))
           setProdutos(newProduto)
@@ -83,21 +92,19 @@
       }
     };
 
-    const handleEditProduct = async (updatedProduto) => {
-      console.log("produutoupdated")
-      console.log(updatedProduto)
-      try {
-        const updated = await produtoService.update(updatedProduto.id, updatedProduto)
-        setProdutos((prevProdutos) =>
-          prevProdutos.map((p) => (p.id === updated.id ? updated : p))
-        )
-        setProdutoEditando(null)
-        setEstaAberto(false)
-      } catch (error) {
-        console.error('Erro ao atualizar produto:', error)
-        alert('Falha ao atualizar o produto.')
-      }
-    }
+   const handleEditProduct = async (formData) => {
+  try {
+    const updated = await produtoService.update(produtoEditando.id, formData)
+    setProdutos((prevProdutos) =>
+      prevProdutos.map((p) => (p.id === updated.id ? updated : p))
+    )
+    setProdutoEditando(null)
+    setEstaAberto(false)
+  } catch (error) {
+    console.error('Erro ao atualizar produto:', error)
+    alert('Falha ao atualizar o produto.')
+  }
+}
 
     const handleEdit = (produto) => {
       setProdutoEditando(produto)
@@ -115,20 +122,29 @@
     };
 
   const handleAddToCart = async (produto) => {
-    try {
-      if (!carrinhoCriado) {
-        const novoCarrinho = await carrinhoService.criarCarrinho()
-        localStorage.setItem('carrinhoId', novoCarrinho.id)
-        setCarrinhoCriado(true)
-      }
-
-      const carrinhoAtualizado = await carrinhoService.adicionarProdutoCarrinho(produto.id)
-      setCarrinho(carrinhoAtualizado.produtos || [])
-    } catch (err) {
-      console.error('Erro ao adicionar produto ao carrinho:', err)
-      alert('Não foi possível adicionar o produto ao carrinho.')
+  try {
+    if (!carrinhoCriado) {
+      const novoCarrinho = await carrinhoService.criarCarrinho()
+      localStorage.setItem('carrinhoId', novoCarrinho.id)
+      setCarrinhoCriado(true)
     }
+
+    console.log(produto.id)
+    var code = String(produto.id)
+    const carrinhoAtualizado = await carrinhoService.adicionarProdutoCarrinho(code)
+
+    
+    const produtosComImagem = (carrinhoAtualizado.produtos || []).map(item => ({
+      ...item,
+      imageUrl: item.urlImagem ? `${BASE_URL}${item.urlImagem}` : '/default.png'
+    }))
+
+    setCarrinho(produtosComImagem)
+  } catch (err) {
+    console.error('Erro ao adicionar produto ao carrinho:', err)
+    alert('Não foi possível adicionar o produto ao carrinho.')
   }
+}
 
     const handleCheckoutComplete = (detalhePagamento) => {
       // Atualiza estoque

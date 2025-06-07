@@ -42,15 +42,23 @@ export const produtoService = {
     return response.data;
   },
 
-  create: async (produtoData) => {
-    const response = await rawApi.post('/Produto', produtoData);
-    return response.data;
-  },
+  create: async (formData) => {
+  const response = await rawApi.post('/Produto', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+  return response.data;
+},
 
   update: async (id, produtoData) => {
-    const response = await rawApi.put(`/Produto/${id}`, produtoData);
-    return response.data;
-  },
+  const response = await rawApi.put(`/Produto/${id}`, produtoData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+  return response.data;
+},
 
   addEstoque: async (id, quantidade) => {
     const response = await rawApi.put(`/Produto/estoque/${id}`, quantidade, {
