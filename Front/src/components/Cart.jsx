@@ -13,26 +13,35 @@ export default function Cart({ cart, setCart }) {
   const [produtoCodigo, setProdutoCodigo] = useState('')
   
   useEffect(() => {
-    const carregarCarrinho = async () => {
-      const carrinhoId = localStorage.getItem('carrinhoId') 
-      
-      if (!carrinhoId) {
-        carrinhoService.criarCarrinho();
-        return
-      }
+  const carregarCarrinho = async () => {
+    let carrinhoId = localStorage.getItem('carrinhoId');
 
+    if (carrinhoId == null) {
       try {
-        const carrinho = await carrinhoService.buscarCarrinhoPorId(carrinhoId)
-        setCart(mapProdutosComImagem(carrinho.produtos)) 
+        const novoCarrinho = await carrinhoService.criarCarrinho();
+        carrinhoId = novoCarrinho.id;
+        localStorage.setItem('carrinhoId', carrinhoId);
+        setCart(mapProdutosComImagem(novoCarrinho.produtos));
       } catch (err) {
-        console.error('Erro ao buscar carrinho:', err)
+        console.error('Erro ao criar carrinho:', err);
       } finally {
-        setCarregando(false)
+        setCarregando(false);
       }
+      return;
     }
 
-    carregarCarrinho()
-  }, [])
+    try {
+      const carrinho = await carrinhoService.buscarCarrinhoPorId(carrinhoId);
+      setCart(mapProdutosComImagem(carrinho.produtos));
+    } catch (err) {
+      console.error('Erro ao buscar carrinho:', err);
+    } finally {
+      setCarregando(false);
+    }
+  };
+
+  carregarCarrinho();
+}, []);
 
 const handleQuantityChange = async (produtoId, novaQuantidade) => {
   try {
@@ -69,7 +78,7 @@ const handleQuantityChange = async (produtoId, novaQuantidade) => {
   try {
     const carrinhoAtualizado = await carrinhoService.adicionarProdutoCarrinho(produtoCodigo);
 setCart(mapProdutosComImagem(carrinhoAtualizado.produtos));
-
+setProdutoCodigo('');
     
   } catch (error) {
     console.error("Erro ao adicionar produto pelo código:", error)
@@ -99,7 +108,30 @@ const mapProdutosComImagem = (produtos) =>
   }
 
   if (cart.length === 0) {
-    return (
+  return (
+    <div className="bg-white rounded-lg shadow-md p-6">
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Carrinho de Compras</h2>
+      
+      <div className="mb-6">
+        <label htmlFor="codigo-produto" className="block text-sm font-medium text-gray-700">
+          Adicionar produto por código
+        </label>
+        <input
+          id="codigo-produto"
+          type="text"
+          value={produtoCodigo}
+          onChange={(e) => setProdutoCodigo(e.target.value)}
+          onKeyDown={async (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              await handleAddByCodigo()
+            }
+          }}
+          placeholder="Digite o código e pressione Enter"
+          className="mt-1 block w-full sm:w-64 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        />
+      </div>
+
       <div className="text-center py-12">
         <p className="text-gray-500 mb-4">Seu carrinho está vazio.</p>
         <Link
@@ -109,8 +141,9 @@ const mapProdutosComImagem = (produtos) =>
           Continuar Comprando
         </Link>
       </div>
-    )
-  }
+    </div>
+  )
+}
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">

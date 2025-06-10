@@ -25,6 +25,7 @@ const handleSubmit = async (e) => {
     await vendasService.realizarVenda(venda)
     onComplete(venda)
     navegacao('/')
+    localStorage.removeItem('carrinhoId')
   } catch (error) {
     console.error("Erro ao salvar a venda:", error)
     alert("Ocorreu um erro ao finalizar a compra. Tente novamente.")

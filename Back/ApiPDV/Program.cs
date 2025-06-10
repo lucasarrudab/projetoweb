@@ -118,6 +118,10 @@ builder.Services.AddScoped<IProdutoCarrinhoRepository, ProdutoCarrinhoRepository
 builder.Services.AddScoped<IVendaRepository, VendaRepository>();
 builder.Services.AddScoped<IMetodoPagamentoRepository,MetodoPagamentoRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<ICarrinhoService,CarrinhoService>();
+builder.Services.AddScoped<IProdutoService, ProdutoService>();
+builder.Services.AddScoped<IVendasService, VendasService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddMemoryCache();
 
 builder.Services.AddAutoMapper(typeof(DTOMapping));

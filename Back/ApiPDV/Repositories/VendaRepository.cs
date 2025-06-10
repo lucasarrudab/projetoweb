@@ -15,7 +15,7 @@ namespace ApiPDV.Repositories
 
         public async Task<IEnumerable<Venda>> GetAllIncludeAsync()
         {
-            return await _context.Vendas.Include(v => v.Carrinho).ThenInclude(c => c.Produtos).ThenInclude(pc => pc.Produto).Include(v => v.MetodoPagamento).ToListAsync();
+            return await _context.Vendas.Include(v => v.Carrinho).ThenInclude(c => c.Produtos).ThenInclude(pc => pc.Produto).Include(v => v.MetodoPagamento).OrderByDescending(v => v.Data).ToListAsync();
         }
 
         public async Task<PagedList<Venda>> GetAllIncludePagedAsync<TKey>(Expression<Func<Venda, bool>>? predicate, Expression<Func<Venda, TKey>>? orderPredicate, int pageNumber, int pageSize)
